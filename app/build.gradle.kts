@@ -1,6 +1,10 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
 }
 
 android {
@@ -30,11 +34,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -66,4 +70,27 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Retrofit
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2") // json parsing
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0") // json parsing
+
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0") // not mandatory
+    implementation("io.coil-kt:coil-compose:2.4.0") // not mandatory
+
+    // Navigation
+    val nav_version = "2.7.7"
+    implementation("androidx.navigation:navigation-runtime-ktx:$nav_version")
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.49")
+    kapt("com.google.dagger:hilt-compiler:2.49")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes = true
 }
