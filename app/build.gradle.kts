@@ -65,6 +65,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -72,6 +75,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("com.google.accompanist:accompanist-permissions:0.33.2-alpha")
+    implementation("io.coil-kt:coil-compose:2.1.0")
+
     // Retrofit
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -90,6 +97,14 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.49")
     kapt("com.google.dagger:hilt-compiler:2.49")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Reordering favorite food cards
+    implementation("sh.calvin.reorderable:reorderable:1.5.2")
+
+    // Navbar
+    implementation("com.canopas.compose-animated-navigationbar:bottombar:1.0.1")
+
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
 }
 
 // Allow references to generated code
