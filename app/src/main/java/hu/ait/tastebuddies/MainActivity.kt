@@ -66,12 +66,12 @@ class MainActivity : ComponentActivity() {
                             if (showNavBar)
                                 AnimatedBottomBar(
                                     selectedItem = selectedItem,
-                                    itemSize = navigationItems.take(2).size,
+                                    itemSize = navigationItems.take(3).size,
                                     containerColor = Color.LightGray,
                                     indicatorStyle = IndicatorStyle.FILLED,
                                     indicatorColor = Color.White
                                 ) {
-                                    navigationItems.take(2).forEachIndexed { index, navigationItem ->
+                                    navigationItems.take(3).forEachIndexed { index, navigationItem ->
                                         BottomBarItem(
                                             selected = currentRoute == navigationItem.route,
                                             onClick = {
