@@ -122,10 +122,3 @@ sealed interface WritePostUiState {
     data class ErrorDuringImageUpload(val error: String?) : WritePostUiState
     object ImageUploadSuccess : WritePostUiState
 }
-
-sealed interface FoodUiState {
-    object Init : FoodUiState
-    object Loading : FoodUiState
-    data class Success(val foodRecipes: FoodRecipes) : FoodUiState
-    data class Error(val errorMsg: String) : FoodUiState
-}
