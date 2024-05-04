@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,14 +17,35 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firestore.v1.Write
+import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.ait.tastebuddies.data.food.FoodRecipes
+import hu.ait.tastebuddies.network.FoodAPI
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import java.util.UUID
+import javax.inject.Inject
 
-class DiaryViewModel : ViewModel() {
-
+@HiltViewModel
+class DiaryViewModel @Inject constructor(
+    var foodAPI: FoodAPI
+) : ViewModel() {
+    var foodUiState: FoodUiState by mutableStateOf(FoodUiState.Init)
     var writePostUiState: WritePostUiState by mutableStateOf(WritePostUiState.Init)
+
+    fun getFoodRecipes(query: String, apiKey: String, number: String) {
+        foodUiState = FoodUiState.Loading
+        viewModelScope.launch {
+            try {
+                // Starts the network communication and returns a roverPhotos object
+                val result = foodAPI.getFoodRecipes(apiKey, query, "2")
+                foodUiState = FoodUiState.Success(result)
+            } catch (e: Exception) {
+                foodUiState = FoodUiState.Error(e.message!!)
+            }
+        }
+    }
 
 //    fun uploadPost(
 //        postTitle: String, postBody: String, imgUrl: String = ""
@@ -99,4 +121,11 @@ sealed interface WritePostUiState {
     object LoadingImageUpload : WritePostUiState
     data class ErrorDuringImageUpload(val error: String?) : WritePostUiState
     object ImageUploadSuccess : WritePostUiState
+}
+
+sealed interface FoodUiState {
+    object Init : FoodUiState
+    object Loading : FoodUiState
+    data class Success(val foodRecipes: FoodRecipes) : FoodUiState
+    data class Error(val errorMsg: String) : FoodUiState
 }
