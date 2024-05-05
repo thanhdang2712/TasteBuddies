@@ -1,4 +1,4 @@
-package hu.ait.tastebuddies.ui.screen.state
+package hu.ait.tastebuddies.ui.screen.repository
 import hu.ait.tastebuddies.data.food.FoodRecipes
 
 sealed interface FoodUiState {
