@@ -15,12 +15,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import hu.ait.tastebuddies.ui.navigation.MainNavigation
 import hu.ait.tastebuddies.ui.screen.MainScreen
 import hu.ait.tastebuddies.ui.screen.login.LoginScreen
 import hu.ait.tastebuddies.ui.screen.profile.ProfileScreen
 import hu.ait.tastebuddies.ui.theme.TasteBuddiesTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
