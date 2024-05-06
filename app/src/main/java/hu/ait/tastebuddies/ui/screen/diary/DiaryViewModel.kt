@@ -9,8 +9,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.ait.tastebuddies.data.Post
+import hu.ait.tastebuddies.data.food.FoodRecipes
 import hu.ait.tastebuddies.network.FoodAPI
-import hu.ait.tastebuddies.ui.screen.repository.FoodUiState
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,13 +26,23 @@ class DiaryViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Starts the network communication and returns a roverPhotos object
-                val result = foodAPI.getFoodRecipes(apiKey, query, "2")
+                val result = foodAPI.getFoodRecipes(apiKey, query, number)
                 foodUiState = FoodUiState.Success(result)
             } catch (e: Exception) {
                 foodUiState = FoodUiState.Error(e.message!!)
             }
         }
+    }
 
+    fun getFoodNames(foodRecipes: FoodRecipes): List<String> {
+        val foodNames = mutableListOf<String>()
+        // Iterate over the recipes
+        foodRecipes.searchResults?.get(0)?.results?.forEach { result ->
+            result?.name?.let { foodNames.add(it) }
+        }
+
+        // Return the list of food names
+        return foodNames
     }
 
     fun uploadDiaryPost(postTitle: String, postBody: String, imgUrl: String = "") {
@@ -65,4 +75,11 @@ sealed interface DiaryUiState {
     object LoadingImageUpload : DiaryUiState
     data class ErrorDuringImageUpload(val error: String?) : DiaryUiState
     object ImageUploadSuccess : DiaryUiState
+}
+
+sealed interface FoodUiState {
+    object Init : FoodUiState
+    object Loading : FoodUiState
+    data class Success(val foodRecipes: FoodRecipes) : FoodUiState
+    data class Error(val errorMsg: String) : FoodUiState
 }
