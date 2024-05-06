@@ -33,7 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -63,7 +62,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
-import com.example.bottombar.AnimatedBottomBar
 import com.google.firebase.auth.FirebaseAuth
 import hu.ait.tastebuddies.R
 import sh.calvin.reorderable.ReorderableRow
@@ -91,11 +89,6 @@ fun ProfileScreen(
                 }
             )
         },
-        bottomBar = {
-            AnimatedBottomBar {
-
-            }
-        }
     ) { contentPadding ->
         // Screen content
         Column(modifier = Modifier.padding(contentPadding)) {

@@ -101,9 +101,6 @@ dependencies {
     // Reordering favorite food cards
     implementation("sh.calvin.reorderable:reorderable:1.5.2")
 
-    // Navbar
-    implementation("com.canopas.compose-animated-navigationbar:bottombar:1.0.1")
-
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.20")
 }
 
