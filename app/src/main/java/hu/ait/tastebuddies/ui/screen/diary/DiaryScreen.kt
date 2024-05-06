@@ -13,12 +13,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -200,13 +208,23 @@ fun DiaryEntryScreen(
     val currentDate by rememberSaveable { mutableStateOf(LocalDateTime.now().format(
         DateTimeFormatter.ofPattern("dd-MMM-yyyy"))) }
     var postBody by rememberSaveable { mutableStateOf("") }
+    var rating by rememberSaveable { mutableStateOf(0f) }
     Column(
         modifier = Modifier.padding(20.dp).padding(top = 56.dp)
     ) {
         Text(text = postTitle, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
+        Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = "Date: $currentDate",
             style = TextStyle(fontSize = 16.sp, color = Color.Gray)
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        StarRatingBar(
+            maxStars = 5,
+            rating = rating,
+            onRatingChanged = {
+                rating = it
+            }
         )
         OutlinedTextField(value = postBody,
             modifier = Modifier.fillMaxWidth(),
@@ -220,6 +238,46 @@ fun DiaryEntryScreen(
             diaryViewModel.uploadDiaryPost(postTitle, postBody)
         }) {
             Text(text = "Upload")
+        }
+    }
+}
+
+
+@Composable
+fun StarRatingBar(
+    maxStars: Int = 5,
+    rating: Float,
+    onRatingChanged: (Float) -> Unit
+) {
+    val density = LocalDensity.current.density
+    val starSize = (12f * density).dp
+    val starSpacing = (0.5f * density).dp
+
+    Row(
+        modifier = Modifier.selectableGroup(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        for (i in 1..maxStars) {
+            val isSelected = i <= rating
+            val icon = if (isSelected) Icons.Filled.Star else Icons.Default.Star
+            val iconTintColor = if (isSelected) Color(0xFFFFC700) else Color(0xFFCCCCCC)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTintColor,
+                modifier = Modifier
+                    .selectable(
+                        selected = isSelected,
+                        onClick = {
+                            onRatingChanged(i.toFloat())
+                        }
+                    )
+                    .width(starSize).height(starSize)
+            )
+
+            if (i < maxStars) {
+                Spacer(modifier = Modifier.width(starSpacing))
+            }
         }
     }
 }
