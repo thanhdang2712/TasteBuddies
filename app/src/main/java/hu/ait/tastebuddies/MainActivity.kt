@@ -30,13 +30,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.bottombar.AnimatedBottomBar
 import com.example.bottombar.components.BottomBarItem
 import com.example.bottombar.model.IndicatorStyle
+import dagger.hilt.android.AndroidEntryPoint
+
 import hu.ait.tastebuddies.ui.navigation.Screen
 import hu.ait.tastebuddies.ui.screen.diary.DiaryScreen
 import hu.ait.tastebuddies.ui.screen.login.LoginScreen
 import hu.ait.tastebuddies.ui.screen.profile.ProfileScreen
 import hu.ait.tastebuddies.ui.theme.TasteBuddiesTheme
 import kotlin.reflect.KClass
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -72,6 +74,7 @@ class MainActivity : ComponentActivity() {
                                     indicatorColor = Color.White
                                 ) {
                                     navigationItems.take(3).forEachIndexed { index, navigationItem ->
+
                                         BottomBarItem(
                                             selected = currentRoute == navigationItem.route,
                                             onClick = {
