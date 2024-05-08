@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
@@ -28,9 +31,12 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -57,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,6 +72,8 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import hu.ait.tastebuddies.data.food.FoodRecipes
+import hu.ait.tastebuddies.ui.screen.profile.FoodCard
+import hu.ait.tastebuddies.ui.screen.profile.ProfileViewModel
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -110,68 +119,95 @@ fun DiaryScreen(
         Column(modifier = Modifier.padding(contentPadding)) {
             if (showDialog) {
                 Dialog(onDismissRequest = { showDialog = false }) {
-                    Surface(shape = MaterialTheme.shapes.medium) {
-                        Column(modifier = Modifier.padding(20.dp)) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "Add a Diary Entry",
                             )
-                            Box(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
-                                OutlinedTextField(
-                                    value = postTitle,
-                                    label = { Text(text = "Today I ate...") },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Filled.Search,
-                                            contentDescription = "Search Icon"
-                                        )
-                                    },
-                                    onValueChange = {
-                                        postTitle = it
-                                    }
-                                )
-                                DropdownMenu(
-                                    expanded = showDropdown,
-                                    onDismissRequest = {
-                                        showDropdown = false
-                                    }
-                                ) {
-                                    foodNames.forEach { name ->
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = name, modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .align(Alignment.Start)
-                                                )
-                                            },
-                                            onClick = {
-                                                postTitle = name
-                                                showDropdown = false
-                                                showDialog = false
-                                                showDiaryEntryScreen = true
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-                            if (!showDropdown) {
-                                Button(onClick = { }) {
-                                    Text(text = "Cancel")
-                                }
-                                Button(onClick = {
-                                    // Call your search function here
+                            OutlinedTextField(
+                                value = postTitle,
+                                label = { Text(text = "Today I ate...") },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Filled.Search,
+                                        contentDescription = "Search Icon"
+                                    )
+                                },
+                                onValueChange = {
+                                    postTitle = it
                                     diaryViewModel.getFoodRecipes(
                                         postTitle,
                                         "9d3cc85171a74f679f647ab3dc919805",
                                         "10"
                                     )
-                                    showDropdown = true
-                                }) {
-                                    Text(text = "Search")
+                                }
+                            )
+                            // Show items in LazyColumn
+                            if (foodNames.isNotEmpty()) {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                ) {
+                                    items(foodNames) {
+                                        FoodSearchCard(
+                                            diaryViewModel,
+                                            foodName = it,
+                                            onFoodSelectedListener = {
+                                                postTitle = it
+                                                showDropdown = false
+                                                showDialog = false
+                                                showDiaryEntryScreen = true
+                                            })
+                                    }
                                 }
                             }
+//                                DropdownMenu(
+//                                    expanded = showDropdown,
+//                                    onDismissRequest = {
+//                                        showDropdown = false
+//                                    }
+//                                ) {
+//                                    foodNames.forEach { name ->
+//                                        DropdownMenuItem(
+//                                            text = {
+//                                                Text(
+//                                                    text = name, modifier = Modifier
+//                                                        .fillMaxWidth()
+//                                                        .align(Alignment.Start)
+//                                                )
+//                                            },
+//                                            onClick = {
+//                                                postTitle = name
+//                                                showDropdown = false
+//                                                showDialog = false
+//                                                showDiaryEntryScreen = true
+//                                            }
+//                                        )
+//                                    }
+//                                }
+
+//                            Spacer(modifier = Modifier.height(16.dp))
+//                            if (!showDropdown) {
+//                                Button(onClick = { }) {
+//                                    Text(text = "Cancel")
+//                                }
+//                                Button(onClick = {
+//                                    // Call your search function here
+//                                    diaryViewModel.getFoodRecipes(
+//                                        postTitle,
+//                                        "9d3cc85171a74f679f647ab3dc919805",
+//                                        "10"
+//                                    )
+//                                    showDropdown = true
+//                                }) {
+//                                    Text(text = "Search")
+//                                }
+//                            }
 
                             when (diaryViewModel.foodUiState) {
                                 is FoodUiState.Init -> {}
@@ -279,5 +315,27 @@ fun StarRatingBar(
                 Spacer(modifier = Modifier.width(starSpacing))
             }
         }
+    }
+}
+
+@Composable
+fun FoodSearchCard(diaryViewModel: DiaryViewModel, foodName: String, onFoodSelectedListener: () -> Unit) {
+    ElevatedCard(
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clickable(onClick = {
+                onFoodSelectedListener()
+            })
+    ) {
+        Text(
+            text = foodName,
+            modifier = Modifier
+                .padding(10.dp),
+            textAlign = TextAlign.Center,
+        )
     }
 }
