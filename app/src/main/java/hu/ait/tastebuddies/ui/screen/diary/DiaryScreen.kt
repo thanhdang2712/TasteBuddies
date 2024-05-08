@@ -247,10 +247,11 @@ fun DiaryEntryScreen(
 fun StarRatingBar(
     maxStars: Int = 5,
     rating: Float,
-    onRatingChanged: (Float) -> Unit
+    onRatingChanged: (Float) -> Unit,
+    size: Int = 12
 ) {
     val density = LocalDensity.current.density
-    val starSize = (12f * density).dp
+    val starSize = (size * density).dp
     val starSpacing = (0.5f * density).dp
 
     Row(

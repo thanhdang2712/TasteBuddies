@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -45,6 +46,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.Post
+import hu.ait.tastebuddies.ui.screen.diary.StarRatingBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +59,7 @@ fun DiscoveryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile") },
+                title = { Text("Discovery") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor =
                     MaterialTheme.colorScheme.secondaryContainer
@@ -106,7 +108,7 @@ fun PostCard(
     onRemoveItem: () -> Unit = {},
     currentUserId: String = ""
 ) {
-    Card(
+    OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
@@ -122,26 +124,50 @@ fun PostCard(
                 .fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(5.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .padding(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
                         text = "Quang ate",
+                        fontSize = 15.sp
                     )
                     Text(
-                        text = "Pho Bo",
+                        text = post.title,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Image(
-                        painter = painterResource(id = R.drawable.food),
-                        contentDescription = "food",
-                        modifier = Modifier.size(200.dp))
+                    StarRatingBar(maxStars = 5, rating = 4f, onRatingChanged = {}, size = 7)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.food),
+                            contentDescription = "food",
+                            modifier = Modifier.size(150.dp))
+                        Text("I just cooked this amazing dish today! You guys should try this some time!", fontSize = 15.sp)
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.black_heart),
+                            contentDescription = "like",
+                            modifier = Modifier.size(20.dp))
+                        Icon(
+                            painter = painterResource(R.drawable.comment),
+                            contentDescription = "comment",
+                            modifier = Modifier.size(20.dp))
+                    }
+                    Text("100,000 likes", fontWeight = FontWeight.Bold)
                 }
-                Text(text = "May 6th")
+                Text(text = "May 6th", fontSize = 15.sp)
             }
 
             if (post.imgUrl.isNotEmpty()) {
