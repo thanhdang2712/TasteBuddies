@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -25,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -61,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,6 +76,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import hu.ait.tastebuddies.R
+import hu.ait.tastebuddies.data.PostType
 import hu.ait.tastebuddies.data.food.FoodRecipes
 import hu.ait.tastebuddies.ui.screen.profile.FoodCard
 import hu.ait.tastebuddies.ui.screen.profile.ProfileViewModel
@@ -80,6 +87,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.P)
+
 @Composable
 fun DiaryScreen(
     diaryViewModel: DiaryViewModel = hiltViewModel()
@@ -87,8 +95,12 @@ fun DiaryScreen(
     var postTitle by rememberSaveable { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var showDropdown by rememberSaveable { mutableStateOf(false) }
-    var foodNames by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var postType by rememberSaveable { mutableStateOf(PostType.ATE) }
+//    var foodNames by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var foodNames by rememberSaveable { mutableStateOf(listOf("Pasta", "Pizza", "Banh mi")) }
     var showDiaryEntryScreen by rememberSaveable{ mutableStateOf(false) }
+    val allPostTypes by rememberSaveable{ mutableStateOf(listOf(PostType.ATE, PostType.MADE, PostType.CRAVE)) }
+    var selected by rememberSaveable { mutableStateOf(PostType.ATE) }
     val context = LocalContext.current
 
 //    // Debug
@@ -107,7 +119,7 @@ fun DiaryScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            showDialog = true
+                            showDropdown = true
                         }
                     ) {
                         Icon(Icons.Filled.Add, contentDescription = "Add")
@@ -116,7 +128,65 @@ fun DiaryScreen(
             )
         }
     ) { contentPadding ->
+
+        // TODO: Display the post type icon to
         Column(modifier = Modifier.padding(contentPadding)) {
+            if (showDropdown) {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                        .wrapContentSize(Alignment.TopEnd)
+                ) {
+                    DropdownMenu(
+                        expanded = showDropdown,
+                        onDismissRequest = { showDropdown = false },
+                        modifier = Modifier.wrapContentSize(Alignment.BottomEnd)
+                    ) {
+                        allPostTypes.forEach { listEntry ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    selected = listEntry
+                                    postType = selected
+                                    showDialog = true
+                                    showDropdown = false
+                                },
+                                text = {
+                                    Text(
+                                        text = listEntry.type,
+                                        modifier = Modifier
+                                            .align(Alignment.Start)
+                                            .padding(10.dp)
+                                    )
+                                },
+                                leadingIcon = {
+                                    when (listEntry) {
+                                        PostType.ATE -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ate),
+                                                contentDescription = "I ate out"
+                                            )
+                                        }
+                                        PostType.MADE -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.made),
+                                                contentDescription = "I made this meal myself"
+                                            )
+                                        }
+                                        PostType.CRAVE -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.crave),
+                                                contentDescription = "I really want to eat this"
+                                            )
+                                        }
+                                    }
+                                }
+
+                            )
+                        }
+                    }
+                }
+
+
+            }
             if (showDialog) {
                 Dialog(onDismissRequest = { showDialog = false }) {
                     Card(
@@ -140,11 +210,11 @@ fun DiaryScreen(
                                 },
                                 onValueChange = {
                                     postTitle = it
-                                    diaryViewModel.getFoodRecipes(
-                                        postTitle,
-                                        "9d3cc85171a74f679f647ab3dc919805",
-                                        "10"
-                                    )
+//                                    diaryViewModel.getFoodRecipes(
+//                                        postTitle,
+//                                        "9d3cc85171a74f679f647ab3dc919805",
+//                                        "10"
+//                                    )
                                 }
                             )
                             // Show items in LazyColumn
@@ -159,7 +229,6 @@ fun DiaryScreen(
                                             foodName = it,
                                             onFoodSelectedListener = {
                                                 postTitle = it
-                                                showDropdown = false
                                                 showDialog = false
                                                 showDiaryEntryScreen = true
                                             })
@@ -337,5 +406,39 @@ fun FoodSearchCard(diaryViewModel: DiaryViewModel, foodName: String, onFoodSelec
                 .padding(10.dp),
             textAlign = TextAlign.Center,
         )
+    }
+}
+@Composable
+fun SpinnerSample(
+    list: List<PostType>,
+    preselected: PostType,
+    onSelectionChanged: (myData: PostType) -> Unit,
+    modifier: Modifier
+) {
+    var selected by remember { mutableStateOf(preselected) }
+    var expanded by remember { mutableStateOf(true) } // initial value
+
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        modifier = modifier.fillMaxWidth()
+    ) {
+        list.forEach { listEntry ->
+            DropdownMenuItem(
+                onClick = {
+                    selected = listEntry
+                    expanded = false
+                    onSelectionChanged(selected)
+                },
+                text = {
+                    Text(
+                        text = listEntry.type,
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .padding(10.dp)
+                    )
+                },
+            )
+        }
     }
 }
