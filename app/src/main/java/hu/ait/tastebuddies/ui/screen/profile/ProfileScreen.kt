@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -135,7 +136,7 @@ fun ProfileScreen(
 @Preview
 @Composable
 fun SimpleComposablePreview() {
-    // FavFoodDialog(onDismissRequest = {}, profileViewModel = , )
+    // ProfileScreen()
 }
 
 @Composable
@@ -194,23 +195,39 @@ fun FavFood(
     profileViewModel: ProfileViewModel,
     id: Int
 ) {
-    OutlinedButton(
-        onClick = {},
+    Card(
         modifier = Modifier
             .size(width = 100.dp, height = 150.dp),
         border = BorderStroke(1.dp, Color.Black),
         shape = RoundedCornerShape(20),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.LightGray
-        )
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Image(painter = painterResource(id = R.drawable.food), contentDescription = "fav food")
-            Text(text = profileViewModel.favFoodList[id]!!)
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.cancel),
+                contentDescription = "cancel button",
+                modifier = Modifier
+                    .weight(0.2f)
+                    .align(Alignment.End)
+                    .padding(5.dp)
+                    .width(40.dp)
+                    .clickable(onClick = {profileViewModel.removeFoodFromList(id)}))
+            Image(
+                painter = painterResource(id = R.drawable.food),
+                contentDescription = "fav food",
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .weight(0.4f)
+                    .padding(10.dp))
+            Text(
+                text = profileViewModel.favFoodList[id]!!,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .weight(0.4f)
+                    .padding(10.dp))
         }
 
     }
