@@ -3,12 +3,12 @@ package hu.ait.tastebuddies.ui.screen.diary
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -26,14 +25,8 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.ShoppingCart
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,7 +47,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,21 +61,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.PostType
-import hu.ait.tastebuddies.data.food.FoodRecipes
-import hu.ait.tastebuddies.ui.screen.profile.FoodCard
-import hu.ait.tastebuddies.ui.screen.profile.ProfileViewModel
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.google.accompanist.permissions.shouldShowRationale
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.P)
@@ -101,12 +93,7 @@ fun DiaryScreen(
     var showDiaryEntryScreen by rememberSaveable{ mutableStateOf(false) }
     val allPostTypes by rememberSaveable{ mutableStateOf(listOf(PostType.ATE, PostType.MADE, PostType.CRAVE)) }
     var selected by rememberSaveable { mutableStateOf(PostType.ATE) }
-    val context = LocalContext.current
 
-//    // Debug
-//    LaunchedEffect(foodNames) {
-//        println("foodNames: $foodNames")
-//    }
 
     Scaffold(
         topBar = {
@@ -128,8 +115,7 @@ fun DiaryScreen(
             )
         }
     ) { contentPadding ->
-
-        // TODO: Display the post type icon to
+        // TODO: Display the post type icon too
         Column(modifier = Modifier.padding(contentPadding)) {
             if (showDropdown) {
                 Box(
@@ -235,48 +221,6 @@ fun DiaryScreen(
                                     }
                                 }
                             }
-//                                DropdownMenu(
-//                                    expanded = showDropdown,
-//                                    onDismissRequest = {
-//                                        showDropdown = false
-//                                    }
-//                                ) {
-//                                    foodNames.forEach { name ->
-//                                        DropdownMenuItem(
-//                                            text = {
-//                                                Text(
-//                                                    text = name, modifier = Modifier
-//                                                        .fillMaxWidth()
-//                                                        .align(Alignment.Start)
-//                                                )
-//                                            },
-//                                            onClick = {
-//                                                postTitle = name
-//                                                showDropdown = false
-//                                                showDialog = false
-//                                                showDiaryEntryScreen = true
-//                                            }
-//                                        )
-//                                    }
-//                                }
-
-//                            Spacer(modifier = Modifier.height(16.dp))
-//                            if (!showDropdown) {
-//                                Button(onClick = { }) {
-//                                    Text(text = "Cancel")
-//                                }
-//                                Button(onClick = {
-//                                    // Call your search function here
-//                                    diaryViewModel.getFoodRecipes(
-//                                        postTitle,
-//                                        "9d3cc85171a74f679f647ab3dc919805",
-//                                        "10"
-//                                    )
-//                                    showDropdown = true
-//                                }) {
-//                                    Text(text = "Search")
-//                                }
-//                            }
 
                             when (diaryViewModel.foodUiState) {
                                 is FoodUiState.Init -> {}
@@ -304,7 +248,8 @@ fun DiaryScreen(
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalPermissionsApi::class)
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun DiaryEntryScreen(
     postTitle: String,
@@ -314,6 +259,24 @@ fun DiaryEntryScreen(
         DateTimeFormatter.ofPattern("dd-MMM-yyyy"))) }
     var postBody by rememberSaveable { mutableStateOf("") }
     var rating by rememberSaveable { mutableStateOf(0f) }
+
+    val cameraPermissionState = rememberPermissionState(
+        android.Manifest.permission.CAMERA
+    )
+    var hasImage by remember {
+        mutableStateOf(false)
+    }
+    var imageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            hasImage = success
+        }
+    )
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier.padding(20.dp).padding(top = 56.dp)
     ) {
@@ -339,10 +302,75 @@ fun DiaryEntryScreen(
             }
         )
 
-        Button(onClick = {
-            diaryViewModel.uploadDiaryPost(postTitle, postBody)
-        }) {
-            Text(text = "Upload")
+        if (cameraPermissionState.status.isGranted) {
+            //if we have the camera permission then show a "Take photo" button
+            Button(onClick = {
+                // this code launches the camera
+                val uri = ComposeFileProvider.getImageUri(context)
+                imageUri = uri
+                cameraLauncher.launch(uri)
+            }) {
+                Text(text = "Take photo")
+            }
+        } else { // if we do not have the Camera permission yet, we need to ask..
+            val permissionText = if (cameraPermissionState.status.shouldShowRationale) {
+                "Please reconsider giving the camera persmission " +
+                        "it is needed if you want to take photo for the message"
+            } else {
+                "Give permission for using photos with items"
+            }
+            Text(text = permissionText)
+            Button(onClick = {
+                // this code pops up a permission request dialog
+                cameraPermissionState.launchPermissionRequest()
+            }) {
+                Text(text = "Request permission")
+            }
+        }
+
+        if (hasImage && imageUri != null) {
+            AsyncImage(model = imageUri,
+                modifier = Modifier.size(200.dp, 200.dp),
+                contentDescription = "Selected image")
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.End // Align items to the start (left) of the column
+        ) {
+            Button(onClick = {
+                if (imageUri == null) {
+                    diaryViewModel.uploadDiaryPost(postTitle, postBody)
+                } else {
+                    diaryViewModel.uploadPostImage(
+                        context.contentResolver,
+                        imageUri!!, // this is the image file location locally on the phone
+                        postTitle,
+                        postBody
+                    )
+                }
+            }) {
+                Text(text = "Upload")
+            }
+        }
+
+        when (diaryViewModel.diaryUiState) {
+            is DiaryUiState.Init -> {}
+            is DiaryUiState.LoadingPostUpload -> CircularProgressIndicator()
+            is DiaryUiState.PostUploadSuccess -> Text(text = "Diary Post uploaded")
+            is DiaryUiState.ErrorDuringPostUpload -> {
+                Text(
+                    text = "Error: ${ (diaryViewModel.diaryUiState as
+                            DiaryUiState.ErrorDuringPostUpload).error}"
+                )
+            }
+            is DiaryUiState.LoadingImageUpload -> CircularProgressIndicator()
+            is DiaryUiState.ImageUploadSuccess -> {
+                Text(text = "Image uploaded, starting post upload.")
+            }
+            is DiaryUiState.ErrorDuringImageUpload -> Text(
+                text = "${(diaryViewModel.diaryUiState as
+                        DiaryUiState.ErrorDuringImageUpload).error}")
         }
     }
 }
@@ -409,36 +437,24 @@ fun FoodSearchCard(diaryViewModel: DiaryViewModel, foodName: String, onFoodSelec
         )
     }
 }
-@Composable
-fun SpinnerSample(
-    list: List<PostType>,
-    preselected: PostType,
-    onSelectionChanged: (myData: PostType) -> Unit,
-    modifier: Modifier
-) {
-    var selected by remember { mutableStateOf(preselected) }
-    var expanded by remember { mutableStateOf(true) } // initial value
 
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-        modifier = modifier.fillMaxWidth()
-    ) {
-        list.forEach { listEntry ->
-            DropdownMenuItem(
-                onClick = {
-                    selected = listEntry
-                    expanded = false
-                    onSelectionChanged(selected)
-                },
-                text = {
-                    Text(
-                        text = listEntry.type,
-                        modifier = Modifier
-                            .align(Alignment.Start)
-                            .padding(10.dp)
-                    )
-                },
+class ComposeFileProvider : FileProvider(
+    hu.ait.tastebuddies.R.xml.filepaths
+) {
+    companion object {
+        fun getImageUri(context: Context): Uri {
+            val directory = File(context.cacheDir, "images")
+            directory.mkdirs()
+            val file = File.createTempFile(
+                "selected_image_",
+                ".jpg",
+                directory,
+            )
+            val authority = context.packageName + ".fileprovider"
+            return getUriForFile(
+                context,
+                authority,
+                file,
             )
         }
     }
