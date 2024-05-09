@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.ait.tastebuddies.data.Post
+import hu.ait.tastebuddies.data.food.FoodItem
 import hu.ait.tastebuddies.data.food.FoodRecipes
 import hu.ait.tastebuddies.network.FoodAPI
 import kotlinx.coroutines.launch
@@ -34,11 +35,15 @@ class DiaryViewModel @Inject constructor(
         }
     }
 
-    fun getFoodNames(foodRecipes: FoodRecipes): List<String> {
-        val foodNames = mutableListOf<String>()
+    fun getFoodNames(foodRecipes: FoodRecipes): List<FoodItem> {
+        val foodNames = mutableListOf<FoodItem>()
         // Iterate over the recipes
+
         foodRecipes.searchResults?.get(0)?.results?.forEach { result ->
-            result?.name?.let { foodNames.add(it) }
+            result?.let {
+                val foodItem = FoodItem(result.id!!, result.name!!, result.image!!)
+                foodNames.add(foodItem)
+            }
         }
 
         // Return the list of food names
