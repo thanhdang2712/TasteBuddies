@@ -72,6 +72,10 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.PostType
+import hu.ait.tastebuddies.data.food.FoodItem
+import hu.ait.tastebuddies.data.food.FoodRecipes
+import hu.ait.tastebuddies.ui.screen.profile.FoodCard
+import hu.ait.tastebuddies.ui.screen.profile.ProfileViewModel
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -89,7 +93,7 @@ fun DiaryScreen(
     var showDropdown by rememberSaveable { mutableStateOf(false) }
     var postType by rememberSaveable { mutableStateOf(PostType.ATE) }
 //    var foodNames by rememberSaveable { mutableStateOf(emptyList<String>()) }
-    var foodNames by rememberSaveable { mutableStateOf(listOf("Pasta", "Pizza", "Banh mi")) }
+    var foodNames by rememberSaveable { mutableStateOf(listOf(FoodItem(1, "Pasta", ""), FoodItem(2, "Pizza", ""), FoodItem(3, "Banh mi", ""))) }
     var showDiaryEntryScreen by rememberSaveable{ mutableStateOf(false) }
     val allPostTypes by rememberSaveable{ mutableStateOf(listOf(PostType.ATE, PostType.MADE, PostType.CRAVE)) }
     var selected by rememberSaveable { mutableStateOf(PostType.ATE) }
@@ -212,9 +216,9 @@ fun DiaryScreen(
                                     items(foodNames) {
                                         FoodSearchCard(
                                             diaryViewModel,
-                                            foodName = it,
+                                            foodName = it.name,
                                             onFoodSelectedListener = {
-                                                postTitle = it
+                                                postTitle = it.name
                                                 showDialog = false
                                                 showDiaryEntryScreen = true
                                             })
