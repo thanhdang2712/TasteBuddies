@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import hu.ait.tastebuddies.ui.navigation.InnerNavigation
 import hu.ait.tastebuddies.ui.screen.diary.DiaryScreen
+import hu.ait.tastebuddies.ui.screen.discovery.DiscoveryScreen
 import hu.ait.tastebuddies.ui.screen.profile.ProfileScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +87,25 @@ fun MainScreen() {
                                 contentDescription = InnerNavigation.Diary.title,
                             )
                         })
+                    NavigationBarItem(selected = selectedBottomTab == 2,
+                        onClick = {
+                            selectedBottomTab = 2
+                            innerNavController.navigate(InnerNavigation.Discovery.route) {
+                                innerNavController.popBackStack()
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = InnerNavigation.Discovery.title,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = InnerNavigation.Discovery.icon,
+                                contentDescription = InnerNavigation.Discovery.title,
+                            )
+                        })
                 }
             })
         }
@@ -102,6 +122,9 @@ fun MainScreen() {
                 }
                 composable(InnerNavigation.Diary.route) {
                     DiaryScreen()
+                }
+                composable(InnerNavigation.Discovery.route) {
+                    DiscoveryScreen()
                 }
             }
         }

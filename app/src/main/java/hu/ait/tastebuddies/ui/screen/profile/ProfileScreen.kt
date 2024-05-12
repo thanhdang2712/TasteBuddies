@@ -68,12 +68,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import hu.ait.tastebuddies.R
+import hu.ait.tastebuddies.data.food.FoodItem
 import hu.ait.tastebuddies.ui.screen.diary.DiaryViewModel
 import hu.ait.tastebuddies.ui.screen.diary.FoodUiState
+import org.jetbrains.annotations.Async
 import sh.calvin.reorderable.ReorderableRow
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -215,15 +218,15 @@ fun FavFood(
                     .padding(5.dp)
                     .width(40.dp)
                     .clickable(onClick = {profileViewModel.removeFoodFromList(id)}))
-            Image(
-                painter = painterResource(id = R.drawable.food),
+            AsyncImage(
+                model = profileViewModel.favFoodList[id]!!.image,
                 contentDescription = "fav food",
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .weight(0.4f)
                     .padding(10.dp))
             Text(
-                text = profileViewModel.favFoodList[id]!!,
+                text = profileViewModel.favFoodList[id]!!.name,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .weight(0.4f)
@@ -305,7 +308,7 @@ fun FavFoodDialog(
     diaryViewModel: DiaryViewModel = hiltViewModel()
 ) {
     var favFood by rememberSaveable { mutableStateOf("") }
-    var foodNames by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var foodNames by rememberSaveable { mutableStateOf(emptyList<FoodItem>()) }
 
 
 
@@ -367,7 +370,7 @@ fun FavFoodDialog(
                         items(foodNames) {
                             FoodCard(
                                 profileViewModel,
-                                foodName = it,
+                                foodItem = it,
                                 onDismissRequest)
                         }
                     }
@@ -390,7 +393,7 @@ fun FavFoodDialog(
 }
 
 @Composable
-fun FoodCard(profileViewModel: ProfileViewModel, foodName: String, onDismissRequest: () -> Unit) {
+fun FoodCard(profileViewModel: ProfileViewModel, foodItem: FoodItem, onDismissRequest: () -> Unit) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
@@ -399,12 +402,12 @@ fun FoodCard(profileViewModel: ProfileViewModel, foodName: String, onDismissRequ
             .fillMaxWidth()
             .height(50.dp)
             .clickable(onClick = {
-                profileViewModel.addFoodToList(foodName)
+                profileViewModel.addFoodToList(foodItem)
                 onDismissRequest()
             })
     ) {
         Text(
-            text = foodName,
+            text = foodItem.name,
             modifier = Modifier
                 .padding(10.dp),
             textAlign = TextAlign.Center,
