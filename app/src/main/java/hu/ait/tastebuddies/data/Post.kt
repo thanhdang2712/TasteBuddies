@@ -16,3 +16,7 @@ data class PostWithId(
     val postId: String,
     val post: Post
 )
+
+enum class PostType(val type: String) {
+    ATE("Ate"), MADE("Made"), CRAVE("Crave");
+}
