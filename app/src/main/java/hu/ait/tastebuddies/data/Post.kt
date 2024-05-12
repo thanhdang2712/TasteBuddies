@@ -9,7 +9,8 @@ data class Post(
     var body: String = "",
     var imgUrl: String = "",
     var date: Date = Date(System.currentTimeMillis()),
-    var rating: Int = 0
+    var rating: Int = 0,
+    var likes: List<String> = emptyList()
 )
 
 data class PostWithId(
