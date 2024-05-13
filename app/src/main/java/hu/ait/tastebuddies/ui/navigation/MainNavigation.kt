@@ -11,4 +11,5 @@ sealed class MainNavigation (
 ) {
     object Login : MainNavigation(route = "loginscreen")
     object Main : MainNavigation(route = "mainscreen")
+    object Register: MainNavigation(route = "registerscreen")
 }

@@ -12,14 +12,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import hu.ait.tastebuddies.ui.navigation.MainNavigation
 import hu.ait.tastebuddies.ui.screen.MainScreen
 import hu.ait.tastebuddies.ui.screen.login.LoginScreen
-import hu.ait.tastebuddies.ui.screen.profile.ProfileScreen
+import hu.ait.tastebuddies.ui.screen.register.RegisterScreen
 import hu.ait.tastebuddies.ui.theme.TasteBuddiesTheme
 
 @AndroidEntryPoint
@@ -52,12 +54,19 @@ fun MainNavGraph(
         startDestination = MainNavigation.Login.route
     ) {
         composable(MainNavigation.Login.route) {
-            LoginScreen(onLoginSuccess = {
-                navController.navigate(MainNavigation.Main.route)
-            })
+            LoginScreen(
+                onLoginSuccess = { navController.navigate(MainNavigation.Main.route) },
+                onRegisterSuccess = { navController.navigate(MainNavigation.Register.route) }
+            )
         }
+
+        composable(MainNavigation.Register.route) {
+            RegisterScreen(onRegisterSuccess = { navController.navigate(MainNavigation.Main.route) })
+        }
+
         composable(MainNavigation.Main.route) {
             MainScreen()
         }
+
     }
 }
