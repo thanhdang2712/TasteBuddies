@@ -47,6 +47,7 @@ import coil.request.ImageRequest
 import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.Post
 import hu.ait.tastebuddies.ui.screen.diary.StarRatingBar
+import hu.ait.tastebuddies.utils.parseMonthDay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,11 +147,11 @@ fun PostCard(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.food),
-                            contentDescription = "food",
+                        AsyncImage(
+                            model = post.imgUrl,
+                            contentDescription = "food image",
                             modifier = Modifier.size(150.dp))
-                        Text("I just cooked this amazing dish today! You guys should try this some time!", fontSize = 15.sp)
+                        Text(post.body, fontSize = 15.sp)
                     }
 
                     Row(
@@ -165,9 +166,9 @@ fun PostCard(
                             contentDescription = "comment",
                             modifier = Modifier.size(20.dp))
                     }
-                    Text("100,000 likes", fontWeight = FontWeight.Bold)
+                    Text(post.likes.size.toString(), fontWeight = FontWeight.Bold)
                 }
-                Text(text = "May 6th", fontSize = 15.sp)
+                Text(text = parseMonthDay(post.date), fontSize = 15.sp)
             }
 
             if (post.imgUrl.isNotEmpty()) {
