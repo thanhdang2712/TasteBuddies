@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +77,7 @@ import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.food.FoodItem
 import hu.ait.tastebuddies.ui.screen.diary.DiaryViewModel
 import hu.ait.tastebuddies.ui.screen.diary.FoodUiState
+import hu.ait.tastebuddies.ui.screen.register.RegisterUiState
 import org.jetbrains.annotations.Async
 import sh.calvin.reorderable.ReorderableRow
 
@@ -86,7 +88,7 @@ fun ProfileScreen(
     diaryViewModel: DiaryViewModel = hiltViewModel()
 ) {
     var showFavFoodDialog by rememberSaveable { mutableStateOf(false) }
-
+    profileViewModel.initializeProfile()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -107,44 +109,49 @@ fun ProfileScreen(
     ) { contentPadding ->
         // Screen content
         Column(modifier = Modifier.padding(contentPadding)) {
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.Start,
-            ) {
-                ProfileImage()
-                Column(
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "Quang Le", fontSize = 20.sp, modifier = Modifier.paddingFromBaseline(top = 50.dp))
-                    Text(text = "20 years old", fontSize = 20.sp)
+            when (profileViewModel.profileUiState) {
+                is ProfileUiState.Init -> {}
+                is ProfileUiState.Loading -> CircularProgressIndicator()
+                is ProfileUiState.Success -> {
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.Start,
+                    ) {
+                        ProfileImage()
+                        Column(
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(text = profileViewModel.currentUser!!.name, fontSize = 20.sp, modifier = Modifier.paddingFromBaseline(top = 50.dp))
+                            Text(text = "${profileViewModel.currentUser!!.age} years old", fontSize = 20.sp)
+                        }
+                    }
+                    FavoriteFoods(
+                        profileViewModel,
+                        onFoodCardClicked = {},
+                        showFavFoodDialog = {
+                            showFavFoodDialog = true
+                        })
+                    profileViewModel.currentUser?.bio?.let { BioDescription(it) }
+                    if (showFavFoodDialog) {
+                        FavFoodDialog(
+                            onDismissRequest = { showFavFoodDialog = false },
+                            profileViewModel = profileViewModel,
+                            diaryViewModel = diaryViewModel)
+                    }
                 }
+                is ProfileUiState.Error -> Text(
+                    text = "Error: ${(profileViewModel.profileUiState as ProfileUiState.Error).errorMsg}"
+                )
             }
-            FavoriteFoods(
-                profileViewModel,
-                onFoodCardClicked = {},
-                showFavFoodDialog = { showFavFoodDialog = true })
-            BioDescription()
-            if (showFavFoodDialog) {
-                FavFoodDialog(
-                    onDismissRequest = { showFavFoodDialog = false },
-                    profileViewModel = profileViewModel,
-                    diaryViewModel = diaryViewModel)
-            }
+
         }
     }
 }
 
-@Preview
 @Composable
-fun SimpleComposablePreview() {
-    // ProfileScreen()
-}
-
-@Composable
-fun BioDescription() {
-    var bioDescription by remember { mutableStateOf("I'm an AIT student, and I love to eat!!!") }
+fun BioDescription(bioText: String) {
     Column(modifier = Modifier
         .padding(20.dp)
         .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween) {
@@ -161,7 +168,7 @@ fun BioDescription() {
             Text(
                 modifier = Modifier
                     .padding(10.dp),
-                text = bioDescription,
+                text = bioText,
                 fontSize = 15.sp)
         }
     }
@@ -173,6 +180,7 @@ fun FavoriteFoods(
     onFoodCardClicked: () -> Unit,
     showFavFoodDialog: () -> Unit
 ) {
+    var state by rememberSaveable {mutableStateOf(true)}
     Column(modifier = Modifier.padding(20.dp)) {
         Text("Top 3 Dishes", fontSize = 20.sp)
         Row(
@@ -198,6 +206,7 @@ fun FavFood(
     profileViewModel: ProfileViewModel,
     id: Int
 ) {
+    var favFoodCardState by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .size(width = 100.dp, height = 150.dp),
@@ -217,7 +226,10 @@ fun FavFood(
                     .align(Alignment.End)
                     .padding(5.dp)
                     .width(40.dp)
-                    .clickable(onClick = {profileViewModel.removeFoodFromList(id)}))
+                    .clickable(onClick = {
+                        profileViewModel.removeFoodFromList(id)
+                        favFoodCardState = !favFoodCardState
+                    }))
             AsyncImage(
                 model = profileViewModel.favFoodList[id]!!.image,
                 contentDescription = "fav food",
@@ -319,7 +331,7 @@ fun FavFoodDialog(
         }
         is FoodUiState.Error -> Text(
             text = "Error: " +
-                    "${(diaryViewModel.foodUiState as FoodUiState.Error).errorMsg}"
+                    (diaryViewModel.foodUiState as FoodUiState.Error).errorMsg
         )
     }
 
