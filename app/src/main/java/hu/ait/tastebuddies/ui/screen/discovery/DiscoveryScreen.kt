@@ -87,7 +87,9 @@ fun DiscoveryScreen(
                 LazyColumn() {
                     items((postListState.value as DiscoveryUIState.Success).postList){
                         //Text(text = it.post.title)
-                        PostCard(post = it.post,
+                        PostCard(
+                            discoveryViewModel = discoveryViewModel,
+                            post = it.post,
                             onRemoveItem = {
                                 discoveryViewModel.deletePost(it.postId)
                             },
@@ -106,6 +108,7 @@ fun DiscoveryScreen(
 @Composable
 fun PostCard(
     post: Post = Post(),
+    discoveryViewModel: DiscoveryViewModel,
     onRemoveItem: () -> Unit = {},
     currentUserId: String = ""
 ) {
@@ -157,16 +160,24 @@ fun PostCard(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        val likeList = discoveryViewModel.getLikes(authorID = post.uid)
                         Icon(
-                            painter = painterResource(R.drawable.black_heart),
+                            painter = painterResource(if (likeList == null) R.drawable.red_heart else R.drawable.black_heart),
                             contentDescription = "like",
-                            modifier = Modifier.size(20.dp))
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable(onClick = {
+                                    if (likeList != null) {
+                                        discoveryViewModel.incrementLikes(authorID = post.uid)
+                                    }
+                                })
+                        )
                         Icon(
                             painter = painterResource(R.drawable.comment),
                             contentDescription = "comment",
                             modifier = Modifier.size(20.dp))
                     }
-                    Text(post.likes.size.toString(), fontWeight = FontWeight.Bold)
+                    Text("${post.likes.size} likes", fontWeight = FontWeight.Bold)
                 }
                 Text(text = parseMonthDay(post.date), fontSize = 15.sp)
             }
@@ -189,5 +200,5 @@ fun PostCard(
 @Preview
 @Composable
 fun Test() {
-    PostCard()
+    // PostCard()
 }
