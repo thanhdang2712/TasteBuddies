@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import hu.ait.tastebuddies.ui.screen.login.LoginUiState
 import hu.ait.tastebuddies.ui.screen.profile.BioDescription
 import hu.ait.tastebuddies.ui.screen.profile.FavFoodDialog
 import hu.ait.tastebuddies.ui.screen.profile.FavoriteFoods
@@ -40,7 +43,10 @@ import hu.ait.tastebuddies.ui.screen.profile.ProfileImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(
+    registerViewModel: RegisterViewModel = viewModel(),
+    onRegisterSuccess: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -62,19 +68,39 @@ fun RegisterScreen() {
         // Screen content
         Column(
             modifier = Modifier
-                .padding(contentPadding)) {
-            var name by rememberSaveable { mutableStateOf ("") }
+                .padding(contentPadding)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally)
+        {
+            var firstName by rememberSaveable { mutableStateOf ("") }
+            var lastName by rememberSaveable { mutableStateOf ("") }
             var age by rememberSaveable { mutableStateOf ("") }
             var bio by rememberSaveable { mutableStateOf("") }
             Text("Personal Information", fontSize = 30.sp, fontWeight = FontWeight.Bold)
-            UpdatedOutlinedTextField(onChange = {name = it}, label = "Name", isDecimal = false)
+            UpdatedOutlinedTextField(onChange = {firstName = it}, label = "First name", isDecimal = false)
+            UpdatedOutlinedTextField(onChange = {lastName = it}, label = "Last name", isDecimal = false)
             UpdatedOutlinedTextField(onChange = {age = it}, label = "Age", isDecimal = true)
 
             Text("About yourself", fontSize = 30.sp, fontWeight = FontWeight.Bold)
             UpdatedOutlinedTextField(onChange = {bio = it}, label = "Bio", isDecimal = false)
             
-            Button(onClick = {}) {
+            Button(
+                enabled = !(firstName.isEmpty() || lastName.isEmpty() || age.isEmpty()),
+                onClick = {
+                    registerViewModel.updateUserProfile(firstName, lastName, age.toInt(), bio)
+                    onRegisterSuccess()
+                }
+            ) {
                 Text("Create")
+            }
+            when (registerViewModel.registerUiState) {
+                is RegisterUiState.Init -> {}
+                is RegisterUiState.Loading -> CircularProgressIndicator()
+                is RegisterUiState.Success -> Text(text = "Profile created!")
+                is RegisterUiState.Error -> Text(
+                    text = "Error: ${(registerViewModel.registerUiState as RegisterUiState.Error).errorMsg}"
+                )
             }
         }
     }
@@ -87,7 +113,6 @@ fun UpdatedOutlinedTextField(
     label: String,
     isDecimal: Boolean
 ){
-    val context = LocalContext.current
     var inputText by remember { mutableStateOf(editText) }
     var isError by remember { mutableStateOf(false) }
     var errorText by remember { mutableStateOf("") }
@@ -121,10 +146,4 @@ fun UpdatedOutlinedTextField(
                     tint = MaterialTheme.colorScheme.error)
         }
     )
-}
-
-@Preview
-@Composable
-fun Test() {
-    RegisterScreen()
 }
