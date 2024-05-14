@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.ButtonDefaults
@@ -36,6 +38,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -96,14 +99,7 @@ fun ProfileScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor =
                     MaterialTheme.colorScheme.secondaryContainer
-                ),
-                actions = {
-//                    IconButton(
-//                        onClick = { }
-//                    ) {
-//                        Icon(Icons.Filled.Info, contentDescription = "Info")
-//                    }
-                }
+                )
             )
         },
     ) { contentPadding ->
@@ -129,7 +125,7 @@ fun ProfileScreen(
                     }
                     FavoriteFoods(
                         profileViewModel,
-                        onFoodCardClicked = {},
+                        onRemoveFoodItem = fun(id: Int): Unit { profileViewModel.removeFoodFromList(id)},
                         showFavFoodDialog = {
                             showFavFoodDialog = true
                         })
@@ -151,10 +147,45 @@ fun ProfileScreen(
 }
 
 @Composable
+fun ProfileImage() {
+    val imageUri = rememberSaveable { mutableStateOf("") }
+    val painter = rememberAsyncImagePainter(
+        if (imageUri.value.isEmpty()) {
+            R.drawable.ic_user
+        } else {
+            imageUri.value
+        }
+    )
+
+    Column(
+        modifier = Modifier
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Card(
+            shape = CircleShape,
+            modifier = Modifier
+                .padding(8.dp)
+                .size(100.dp)
+        ) {
+            Image(
+                painter = painter,
+                contentDescription = "profile image",
+                modifier = Modifier
+                    .wrapContentSize()
+                    .clickable {},
+                contentScale = ContentScale.Crop)
+        }
+        Text(text = "Change profile picture", fontSize = 15.sp)
+    }
+}
+
+@Composable
 fun BioDescription(bioText: String) {
     Column(modifier = Modifier
         .padding(20.dp)
-        .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween) {
+        .fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text("Bio", fontSize = 20.sp)
         OutlinedCard(
             colors = CardDefaults.cardColors(
@@ -177,24 +208,27 @@ fun BioDescription(bioText: String) {
 @Composable
 fun FavoriteFoods(
     profileViewModel: ProfileViewModel,
-    onFoodCardClicked: () -> Unit,
+    onRemoveFoodItem: (Int) -> Unit,
     showFavFoodDialog: () -> Unit
 ) {
-    var state by rememberSaveable {mutableStateOf(true)}
     Column(modifier = Modifier.padding(20.dp)) {
         Text("Top 3 Dishes", fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(10.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             for (i in 0..2) {
                 if (profileViewModel.favFoodList[i] == null) {
                     FavFoodPlaceholder(profileViewModel, id = i, showFavFoodDialog)
                 } else {
-                    FavFood(profileViewModel, id = i)
+                    FavFood(
+                        profileViewModel,
+                        onRemoveFoodItem = { onRemoveFoodItem(i) },
+                        id = i)
                 }
             }
         }
@@ -204,13 +238,17 @@ fun FavoriteFoods(
 @Composable
 fun FavFood(
     profileViewModel: ProfileViewModel,
+    onRemoveFoodItem: () -> Unit,
     id: Int
 ) {
     var favFoodCardState by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
-            .size(width = 100.dp, height = 150.dp),
+            .size(width = 110.dp, height = 200.dp),
         border = BorderStroke(1.dp, Color.Black),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
         shape = RoundedCornerShape(20),
     ) {
         Column(
@@ -227,7 +265,7 @@ fun FavFood(
                     .padding(5.dp)
                     .width(40.dp)
                     .clickable(onClick = {
-                        profileViewModel.removeFoodFromList(id)
+                        onRemoveFoodItem()
                         favFoodCardState = !favFoodCardState
                     }))
             AsyncImage(
@@ -250,66 +288,38 @@ fun FavFood(
 
 @Composable
 fun FavFoodPlaceholder(profileViewModel: ProfileViewModel, id: Int, showDialogBox: () -> Unit) {
-    OutlinedButton(
-        onClick = {
-            profileViewModel.foodCardNum = id
-            showDialogBox()
-        },
+    Card(
         modifier = Modifier
-            .size(width = 100.dp, height = 150.dp),
+            .size(width = 110.dp, height = 200.dp)
+            .clickable(
+                onClick = {
+                    profileViewModel.foodCardNum = id
+                    showDialogBox()
+                }
+            ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
         border = BorderStroke(1.dp, Color.Black),
         shape = RoundedCornerShape(20),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.LightGray
-        )
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color.Gray, shape = CircleShape),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add",
-                tint = Color.White
-            )
-        }
-    }
-}
-
-
-@Composable
-fun ProfileImage() {
-    val imageUri = rememberSaveable { mutableStateOf("") }
-    val painter = rememberAsyncImagePainter(
-        if (imageUri.value.isEmpty()) {
-            R.drawable.ic_user
-        } else {
-            imageUri.value
-        }
-    )
-
-    Column(
-        modifier = Modifier
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            shape = CircleShape,
-            modifier = Modifier
-                .padding(8.dp)
-                .size(100.dp)
-        ) {
-            Image(
-                painter = painter,
-                contentDescription = "profile image",
+            Box(
                 modifier = Modifier
-                    .wrapContentSize()
-                    .clickable {},
-                contentScale = ContentScale.Crop)
+                    .size(50.dp)
+                    .background(Color.Gray, shape = CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    tint = Color.White,
+                )
+            }
         }
-        Text(text = "Change profile picture", fontSize = 15.sp)
     }
 }
 

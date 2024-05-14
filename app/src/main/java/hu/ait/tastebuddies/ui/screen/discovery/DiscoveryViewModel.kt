@@ -1,9 +1,6 @@
 package hu.ait.tastebuddies.ui.screen.discovery
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -11,34 +8,11 @@ import com.google.firebase.firestore.firestore
 import hu.ait.tastebuddies.data.DataManager
 import hu.ait.tastebuddies.data.Post
 import hu.ait.tastebuddies.data.PostWithId
-import hu.ait.tastebuddies.data.User
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 
 class DiscoveryViewModel: ViewModel() {
-    private var likesList: List<String> = emptyList()
     private val db = Firebase.firestore
-
-    fun getLikes(postID: String) = callbackFlow {
-        val snapshotListener =
-            FirebaseFirestore.getInstance().collection("posts").document(postID)
-                .addSnapshotListener() { snapshot, e ->
-                    val response = if (snapshot != null) {
-                        val post = snapshot.toObject(Post::class.java)
-                        likesList = post!!.likes
-                    } else {
-
-                    }
-
-                    trySend(response) // emit this value through the flow
-                }
-        awaitClose { // when we navigate out from the screen,
-            // the flow stosp and we stop here the firebase listener
-            snapshotListener.remove()
-        }
-    }
 
     fun updateLikes(postID: String, likes: List<String>) {
         val mutableLikesList = likes.toMutableList()
