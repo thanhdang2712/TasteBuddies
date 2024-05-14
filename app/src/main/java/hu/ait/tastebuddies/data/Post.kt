@@ -21,5 +21,5 @@ data class PostWithId(
 )
 
 enum class PostType(val type: String) {
-    ATE("Ate"), MADE("Made"), CRAVE("Crave");
+    ATE("ate"), MADE("made"), CRAVE("craves");
 }
