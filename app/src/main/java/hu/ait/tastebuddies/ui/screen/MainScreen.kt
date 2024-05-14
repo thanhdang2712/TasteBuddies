@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import hu.ait.tastebuddies.ui.navigation.InnerNavigation
+import hu.ait.tastebuddies.ui.navigation.MainNavigation
 import hu.ait.tastebuddies.ui.screen.diary.DiaryScreen
 import hu.ait.tastebuddies.ui.screen.discovery.DiscoveryScreen
 import hu.ait.tastebuddies.ui.screen.profile.ProfileScreen

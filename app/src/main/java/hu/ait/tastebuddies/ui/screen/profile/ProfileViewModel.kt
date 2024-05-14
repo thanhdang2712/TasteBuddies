@@ -15,7 +15,6 @@ import hu.ait.tastebuddies.data.DataManager
 import hu.ait.tastebuddies.data.User
 import hu.ait.tastebuddies.data.food.FoodItem
 
-// TODO: Change type of food list to FoodItem instead in String
 class ProfileViewModel : ViewModel() {
     var profileUiState: ProfileUiState by mutableStateOf(ProfileUiState.Init)
 
@@ -23,7 +22,6 @@ class ProfileViewModel : ViewModel() {
     var currentUser: User? = null
 
     var favFoodList: Array<FoodItem?> = arrayOf(null, null, null)
-    // var favFoodList: Array<FoodItem?> = arrayOf(FoodItem(1, "Pasta with Cheese", "https://cheeseknees.com/wp-content/uploads/2022/06/Cheese-Pasta-sq.jpg"), null, null)
     var foodCardNum = 0
 
     fun initializeProfile() {
@@ -46,9 +44,13 @@ class ProfileViewModel : ViewModel() {
             }
     }
 
-    private fun updateFavFoodList() {
-        val docRef = db.collection("users").document(DataManager.email)
+    private fun updateFavFoodList(isRemove: Boolean = false) {
+        db.collection("users").document(DataManager.email)
             .update("favFoods", favFoodList.toList())
+            .addOnSuccessListener { if (isRemove) initializeProfile() }
+            .addOnFailureListener {
+                // do something
+            }
     }
 
     fun addFoodToList(foodItem: FoodItem) {
@@ -58,7 +60,7 @@ class ProfileViewModel : ViewModel() {
 
     fun removeFoodFromList(index: Int) {
         favFoodList[index] = null
-        updateFavFoodList()
+        updateFavFoodList(true)
     }
 }
 
