@@ -39,7 +39,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -145,12 +148,17 @@ fun PostCard(
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
-                        text = "${post.authorName} ate",
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("${post.authorName} ")
+                            }
+                            append(post.postType.type)
+                        },
                         fontSize = 15.sp
                     )
                     Text(
                         text = post.title,
-                        fontSize = 20.sp,
+                        fontSize = 27.sp,
                         fontWeight = FontWeight.Bold
                     )
                     StarRatingBar(maxStars = 5, rating = 4f, onRatingChanged = {}, size = 7)
@@ -199,10 +207,4 @@ fun PostCard(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun Test() {
-    // PostCard()
 }
