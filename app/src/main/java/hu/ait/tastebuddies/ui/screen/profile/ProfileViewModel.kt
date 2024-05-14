@@ -37,6 +37,7 @@ class ProfileViewModel : ViewModel() {
                     for (i in 0 .. 2) {
                         favFoodList[i] = currentUser?.favFoods?.get(i)
                     }
+                    DataManager.name = currentUser!!.name
                     profileUiState = ProfileUiState.Success
                 }
             }
