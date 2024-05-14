@@ -322,6 +322,7 @@ fun FavFoodDialog(
     var favFood by rememberSaveable { mutableStateOf("") }
     var foodNames by rememberSaveable { mutableStateOf(emptyList<FoodItem>()) }
 
+
     when (diaryViewModel.foodUiState) {
         is FoodUiState.Init -> {}
         is FoodUiState.Loading -> CircularProgressIndicator()
@@ -377,7 +378,7 @@ fun FavFoodDialog(
                         favFood = it
                         diaryViewModel.getFoodRecipes(
                             favFood,
-                            "9d3cc85171a74f679f647ab3dc919805",
+                            "f8aaf2cb54144b4f85fd846c61a23cd9",
                             "10"
                         )
                     }
@@ -397,6 +398,18 @@ fun FavFoodDialog(
                                 onDismissRequest)
                         }
                     }
+                }
+                when (diaryViewModel.foodUiState) {
+                    is FoodUiState.Init -> {}
+                    is FoodUiState.Loading -> CircularProgressIndicator()
+                    is FoodUiState.Success -> {
+                        foodNames =
+                            diaryViewModel.getFoodNames((diaryViewModel.foodUiState as FoodUiState.Success).foodRecipes)
+                    }
+                    is FoodUiState.Error -> Text(
+                        text = "Error: " +
+                                "${(diaryViewModel.foodUiState as FoodUiState.Error).errorMsg}"
+                    )
                 }
             }
         }
