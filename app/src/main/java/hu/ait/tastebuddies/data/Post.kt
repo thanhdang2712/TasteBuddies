@@ -4,12 +4,15 @@ import java.util.Date
 
 data class Post(
     var uid: String = "",
-    var author: String = "",
+    var authorName: String = "",
+    var authorEmail: String = "",
     var title: String = "",
     var body: String = "",
     var imgUrl: String = "",
     var date: Date = Date(System.currentTimeMillis()),
-    var rating: Int = 0
+    var rating: Int = 0,
+    var likes: List<String> = emptyList(),
+    var postType: PostType = PostType.ATE
 )
 
 data class PostWithId(

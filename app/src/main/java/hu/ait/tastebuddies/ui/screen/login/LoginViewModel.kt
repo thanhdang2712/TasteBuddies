@@ -8,30 +8,36 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
+import hu.ait.tastebuddies.data.DataManager
+import hu.ait.tastebuddies.data.User
 import kotlinx.coroutines.tasks.await
 
 class LoginViewModel : ViewModel() {
 
     var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Init)
-
+    val db = Firebase.firestore
     private lateinit var auth: FirebaseAuth
 
     init {
         auth = Firebase.auth
     }
 
-    fun registerUser(email: String, password: String) {
+    suspend fun registerUser(email: String, password: String): AuthResult? {
         loginUiState = LoginUiState.Loading
         try {
-            auth.createUserWithEmailAndPassword(email,password)
-                .addOnSuccessListener {
-                    loginUiState = LoginUiState.RegisterSuccess
-                }
-                .addOnFailureListener{
-                    loginUiState = LoginUiState.Error(it.message)
-                }
+            var result = auth.createUserWithEmailAndPassword(email,password).await()
+            if (result.user != null) {
+                val newUser = User(email)
+                db.collection("users").document(email).set(newUser)
+                loginUiState = LoginUiState.RegisterSuccess
+            } else {
+                loginUiState = LoginUiState.Error("Register failed!")
+            }
+            return result
         } catch (e: Exception) {
             loginUiState = LoginUiState.Error(e.message)
+            return null
         }
     }
 

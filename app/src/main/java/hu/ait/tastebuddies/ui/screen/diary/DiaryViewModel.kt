@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.ait.tastebuddies.data.DataManager
 import hu.ait.tastebuddies.data.Post
 import hu.ait.tastebuddies.data.food.FoodItem
 import hu.ait.tastebuddies.data.food.FoodRecipes
@@ -66,6 +67,7 @@ class DiaryViewModel @Inject constructor(
         diaryUiState = DiaryUiState.LoadingPostUpload
         val newPost = Post(
             FirebaseAuth.getInstance().uid!!,
+            DataManager.name,
             FirebaseAuth.getInstance().currentUser?.email!!,
             postTitle,
             postBody,
