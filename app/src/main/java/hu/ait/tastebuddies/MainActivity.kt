@@ -20,6 +20,8 @@ import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import hu.ait.tastebuddies.ui.navigation.MainNavigation
 import hu.ait.tastebuddies.ui.screen.MainScreen
+import hu.ait.tastebuddies.ui.screen.cravelist.CravelistScreen
+import hu.ait.tastebuddies.ui.screen.diary.DiaryScreen
 import hu.ait.tastebuddies.ui.screen.login.LoginScreen
 import hu.ait.tastebuddies.ui.screen.register.RegisterScreen
 import hu.ait.tastebuddies.ui.theme.TasteBuddiesTheme
@@ -62,6 +64,14 @@ fun MainNavGraph(
 
         composable(MainNavigation.Register.route) {
             RegisterScreen(onRegisterSuccess = { navController.navigate(MainNavigation.Main.route) })
+        }
+
+        composable(MainNavigation.Diary.route) {
+            DiaryScreen()
+        }
+
+        composable(MainNavigation.Cravelist.route) {
+            CravelistScreen()
         }
 
         composable(MainNavigation.Main.route) {
