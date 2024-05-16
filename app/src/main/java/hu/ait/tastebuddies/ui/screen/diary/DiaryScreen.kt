@@ -2,10 +2,12 @@ package hu.ait.tastebuddies.ui.screen.diary
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.foundation.lazy.items
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -103,7 +106,7 @@ fun DiaryScreen(
     var selected by rememberSaveable { mutableStateOf(PostType.ATE) }
     var diaryNote by rememberSaveable{ mutableStateOf(DiaryNote()) }
     val currentDate by rememberSaveable { mutableStateOf(LocalDateTime.now().format(
-        DateTimeFormatter.ofPattern("dd-MMM-yyyy"))) }
+        DateTimeFormatter.ofPattern("dd MMM yyyy"))) }
 
     Scaffold(
         topBar = {
@@ -270,6 +273,9 @@ fun DiaryEntryScreen(
     diaryViewModel: DiaryViewModel,
     diaryNote: DiaryNote
 ) {
+    var noteBody by rememberSaveable { mutableStateOf("") }
+    var noteRating by rememberSaveable { mutableStateOf(0.0f) }
+
     val cameraPermissionState = rememberPermissionState(
         android.Manifest.permission.CAMERA
     )
@@ -289,7 +295,52 @@ fun DiaryEntryScreen(
 
     Scaffold(
         bottomBar = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Divider()
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    if (cameraPermissionState.status.isGranted) {
+                        //if we have the camera permission then show a "Take photo" button
+                        Button(onClick = {
+                            // this code launches the camera
+                            val uri = ComposeFileProvider.getImageUri(context)
+                            imageUri = uri
+                            cameraLauncher.launch(uri)
+                        }) {
+                            Text(text = "Take photo")
+                        }
+                    } else { // if we do not have the Camera permission yet, we need to ask..
+                        val permissionText = if (cameraPermissionState.status.shouldShowRationale) {
+                            "Please reconsider giving the camera persmission " +
+                                    "it is needed if you want to take photo for the message"
+                        } else {
+                            "Give permission for using photos with items"
+                        }
+                        Text(text = permissionText)
+                        Button(onClick = {
+                            // this code pops up a permission request dialog
+                            cameraPermissionState.launchPermissionRequest()
+                        }) {
+                            Text(text = "Request permission")
+                        }
+                    }
 
+                    Button(onClick = {
+                        if (imageUri == null && diaryNote.body!= null) {
+                            diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!)
+                        } else {
+                            diaryViewModel.uploadPostImage(
+                                context.contentResolver,
+                                imageUri!!, // this is the image file location locally on the phone
+                                diaryNote.title!!,
+                                diaryNote.body!!
+                            )
+                        }
+                    }) {
+                        Text(text = "Upload")
+                    }
+                }
+            }
         }
     ) { contentPadding ->
         Column(
@@ -327,23 +378,24 @@ fun DiaryEntryScreen(
             Spacer(modifier = Modifier.height(8.dp))
             StarRatingBar(
                 maxStars = 5,
-                rating = diaryNote.rating!!,
+                rating = noteRating,
                 onRatingChanged = {
                     diaryNote.rating = it
+                    noteRating = it
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Divider()
             Spacer(modifier = Modifier.height(8.dp))
-            diaryNote.body?.let {
-                OutlinedTextField(value = it,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = "Add a diary entry...") },
-                    onValueChange = {
-                        diaryNote.body = it
-                    }
-                )
-            }
+
+            OutlinedTextField(value = noteBody,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Add a diary entry...") },
+                onValueChange = {
+                    diaryNote.body = it
+                    noteBody = it
+                }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             if (hasImage && imageUri != null) {
                 AsyncImage(model = imageUri,
@@ -352,51 +404,15 @@ fun DiaryEntryScreen(
                     contentScale = ContentScale.Crop)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            if (cameraPermissionState.status.isGranted) {
-                //if we have the camera permission then show a "Take photo" button
-                Button(onClick = {
-                    // this code launches the camera
-                    val uri = ComposeFileProvider.getImageUri(context)
-                    imageUri = uri
-                    cameraLauncher.launch(uri)
-                }) {
-                    Text(text = "Take photo")
-                }
-            } else { // if we do not have the Camera permission yet, we need to ask..
-                val permissionText = if (cameraPermissionState.status.shouldShowRationale) {
-                    "Please reconsider giving the camera persmission " +
-                            "it is needed if you want to take photo for the message"
-                } else {
-                    "Give permission for using photos with items"
-                }
-                Text(text = permissionText)
-                Button(onClick = {
-                    // this code pops up a permission request dialog
-                    cameraPermissionState.launchPermissionRequest()
-                }) {
-                    Text(text = "Request permission")
-                }
-            }
-
-            Button(onClick = {
-                if (imageUri == null && diaryNote.body!= null) {
-                    diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!)
-                } else {
-                    diaryViewModel.uploadPostImage(
-                        context.contentResolver,
-                        imageUri!!, // this is the image file location locally on the phone
-                        diaryNote.title!!,
-                        diaryNote.body!!
-                    )
-                }
-            }) {
-                Text(text = "Upload")
-            }
 
             when (diaryViewModel.diaryUiState) {
                 is DiaryUiState.Init -> {}
                 is DiaryUiState.LoadingPostUpload -> CircularProgressIndicator()
-                is DiaryUiState.PostUploadSuccess -> Text(text = "Diary Post uploaded")
+                is DiaryUiState.PostUploadSuccess -> {
+                    Text(text = "Diary Post uploaded")
+                    diaryViewModel.addDiaryNote(diaryNote)
+                    MyDiaryScreen(diaryViewModel)
+                }
                 is DiaryUiState.ErrorDuringPostUpload -> {
                     Text(
                         text = "Error: ${ (diaryViewModel.diaryUiState as
@@ -414,6 +430,61 @@ fun DiaryEntryScreen(
         }
     }
 
+}
+
+@Composable
+fun MyDiaryScreen(
+    diaryViewModel: DiaryViewModel
+) {
+    LazyColumn() {
+        items(diaryViewModel.getAllDiaryNotes()) {
+            MyDiaryEntryCard(it)
+        }
+    }
+
+}
+
+@Composable
+fun MyDiaryEntryCard(
+    diaryNote: DiaryNote
+) {
+    val (day, month, year) = diaryNote.date.split(" ")
+    Column(
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = day ?: "",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(text = month ?: "", style = MaterialTheme.typography.bodyLarge)
+        Text(text = year, style = MaterialTheme.typography.bodyLarge)
+        Divider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            if (diaryNote.noteType != null) {
+                Image(
+                    painter = painterResource(diaryNote.noteType!!.icon),
+                    contentDescription = "Post type icon",
+                    modifier = Modifier.size(30.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (!diaryNote.title.isNullOrEmpty()) {
+                Text(
+                    text = diaryNote.title ?: "",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (!diaryNote.body.isNullOrEmpty()) {
+                Text(text = diaryNote.body ?: "", style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
 }
 
 
