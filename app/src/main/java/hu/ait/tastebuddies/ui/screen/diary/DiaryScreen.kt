@@ -7,10 +7,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,6 +33,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
@@ -55,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -80,6 +84,7 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.accompanist.permissions.shouldShowRationale
+import hu.ait.tastebuddies.ui.navigation.MainNavigation
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.P)
@@ -96,7 +101,9 @@ fun DiaryScreen(
     var showDiaryEntryScreen by rememberSaveable{ mutableStateOf(false) }
     val allPostTypes by rememberSaveable{ mutableStateOf(listOf(PostType.ATE, PostType.MADE, PostType.CRAVE)) }
     var selected by rememberSaveable { mutableStateOf(PostType.ATE) }
-
+    var diaryNote by rememberSaveable{ mutableStateOf(DiaryNote()) }
+    val currentDate by rememberSaveable { mutableStateOf(LocalDateTime.now().format(
+        DateTimeFormatter.ofPattern("dd-MMM-yyyy"))) }
 
     Scaffold(
         topBar = {
@@ -147,28 +154,15 @@ fun DiaryScreen(
                                     )
                                 },
                                 leadingIcon = {
-                                    when (listEntry) {
-                                        PostType.ATE -> {
-                                            Icon(
-                                                painter = painterResource(R.drawable.ate),
-                                                contentDescription = "I ate out"
-                                            )
+                                    Icon(
+                                        painter = painterResource(id = listEntry.icon),
+                                        contentDescription = when (listEntry) {
+                                            PostType.ATE -> "I ate out"
+                                            PostType.MADE -> "I made this meal myself"
+                                            PostType.CRAVE -> "I really want to eat this"
                                         }
-                                        PostType.MADE -> {
-                                            Icon(
-                                                painter = painterResource(R.drawable.made),
-                                                contentDescription = "I made this meal myself"
-                                            )
-                                        }
-                                        PostType.CRAVE -> {
-                                            Icon(
-                                                painter = painterResource(R.drawable.crave),
-                                                contentDescription = "I really want to eat this"
-                                            )
-                                        }
-                                    }
+                                    )
                                 }
-
                             )
                         }
                     }
@@ -183,12 +177,29 @@ fun DiaryScreen(
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
+                            Box(modifier = Modifier.fillMaxWidth().padding(5.dp)) {
+                                Icon(
+                                    painter = painterResource(id = postType.icon),
+                                    contentDescription = when (postType) {
+                                        PostType.ATE -> "I ate out"
+                                        PostType.MADE -> "I made this meal myself"
+                                        PostType.CRAVE -> "I really want to eat this"
+                                    },
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
                             Text(
                                 text = "Add a Diary Entry",
                             )
                             OutlinedTextField(
                                 value = postTitle,
-                                label = { Text(text = "Today I ate...") },
+                                label = { 
+                                    Text(text = when (postType) {
+                                        PostType.ATE -> "Today I ate..."
+                                        PostType.MADE -> "Today I made..."
+                                        PostType.CRAVE -> "Today I crave..."
+                                    })
+                                },
                                 leadingIcon = {
                                     Icon(
                                         Icons.Filled.Search,
@@ -216,6 +227,8 @@ fun DiaryScreen(
                                             foodName = it.name,
                                             onFoodSelectedListener = {
                                                 postTitle = it.name
+                                                diaryNote = DiaryNote(currentDate, postType, postTitle, "", 0f)
+                                                diaryViewModel.diaryNotes.add(diaryNote)
                                                 showDialog = false
                                                 showDiaryEntryScreen = true
                                             })
@@ -242,7 +255,7 @@ fun DiaryScreen(
             }
         }
         if (showDiaryEntryScreen) {
-            DiaryEntryScreen(postTitle, diaryViewModel)
+            DiaryEntryScreen(postTitle, diaryViewModel, diaryNote)
         }
     }
 }
@@ -254,13 +267,9 @@ fun DiaryScreen(
 @Composable
 fun DiaryEntryScreen(
     postTitle: String,
-    diaryViewModel: DiaryViewModel
+    diaryViewModel: DiaryViewModel,
+    diaryNote: DiaryNote
 ) {
-    val currentDate by rememberSaveable { mutableStateOf(LocalDateTime.now().format(
-        DateTimeFormatter.ofPattern("dd-MMM-yyyy"))) }
-    var postBody by rememberSaveable { mutableStateOf("") }
-    var rating by rememberSaveable { mutableStateOf(0f) }
-
     val cameraPermissionState = rememberPermissionState(
         android.Manifest.permission.CAMERA
     )
@@ -278,102 +287,133 @@ fun DiaryEntryScreen(
     )
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier.padding(20.dp).padding(top = 56.dp)
-    ) {
-        Text(text = postTitle, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(
-            text = "Date: $currentDate",
-            style = TextStyle(fontSize = 16.sp, color = Color.Gray)
-        )
-        Spacer(modifier = Modifier.height(5.dp))
-        StarRatingBar(
-            maxStars = 5,
-            rating = rating,
-            onRatingChanged = {
-                rating = it
-            }
-        )
-        OutlinedTextField(value = postBody,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "Add a diary entry...") },
-            onValueChange = {
-                postBody = it
-            }
-        )
+    Scaffold(
+        bottomBar = {
 
-        if (cameraPermissionState.status.isGranted) {
-            //if we have the camera permission then show a "Take photo" button
-            Button(onClick = {
-                // this code launches the camera
-                val uri = ComposeFileProvider.getImageUri(context)
-                imageUri = uri
-                cameraLauncher.launch(uri)
-            }) {
-                Text(text = "Take photo")
-            }
-        } else { // if we do not have the Camera permission yet, we need to ask..
-            val permissionText = if (cameraPermissionState.status.shouldShowRationale) {
-                "Please reconsider giving the camera persmission " +
-                        "it is needed if you want to take photo for the message"
-            } else {
-                "Give permission for using photos with items"
-            }
-            Text(text = permissionText)
-            Button(onClick = {
-                // this code pops up a permission request dialog
-                cameraPermissionState.launchPermissionRequest()
-            }) {
-                Text(text = "Request permission")
-            }
         }
-
-        if (hasImage && imageUri != null) {
-            AsyncImage(model = imageUri,
-                modifier = Modifier.size(200.dp, 200.dp),
-                contentDescription = "Selected image")
-        }
-
+    ) { contentPadding ->
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.End // Align items to the start (left) of the column
+            modifier = Modifier.fillMaxSize().padding(top = 56.dp).padding(contentPadding).padding(25.dp),
         ) {
+            Text(
+                text = "Date: ${diaryNote.date}",
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(modifier = Modifier.fillMaxWidth().padding(5.dp),
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                if (!diaryNote.title.isNullOrEmpty()) {
+                    Text(
+                        text = diaryNote.title ?: "",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                Icon(
+                    painter = painterResource(id = diaryNote.noteType!!.icon),
+                    contentDescription = when ( diaryNote.noteType!!) {
+                        PostType.ATE -> "I ate out"
+                        PostType.MADE -> "I made this meal myself"
+                        PostType.CRAVE -> "I really want to eat this"
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(8.dp))
+            StarRatingBar(
+                maxStars = 5,
+                rating = diaryNote.rating!!,
+                onRatingChanged = {
+                    diaryNote.rating = it
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(8.dp))
+            diaryNote.body?.let {
+                OutlinedTextField(value = it,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = "Add a diary entry...") },
+                    onValueChange = {
+                        diaryNote.body = it
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (hasImage && imageUri != null) {
+                AsyncImage(model = imageUri,
+                    modifier = Modifier.weight(1f).fillMaxSize(),
+                    contentDescription = "Selected image",
+                    contentScale = ContentScale.Crop)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (cameraPermissionState.status.isGranted) {
+                //if we have the camera permission then show a "Take photo" button
+                Button(onClick = {
+                    // this code launches the camera
+                    val uri = ComposeFileProvider.getImageUri(context)
+                    imageUri = uri
+                    cameraLauncher.launch(uri)
+                }) {
+                    Text(text = "Take photo")
+                }
+            } else { // if we do not have the Camera permission yet, we need to ask..
+                val permissionText = if (cameraPermissionState.status.shouldShowRationale) {
+                    "Please reconsider giving the camera persmission " +
+                            "it is needed if you want to take photo for the message"
+                } else {
+                    "Give permission for using photos with items"
+                }
+                Text(text = permissionText)
+                Button(onClick = {
+                    // this code pops up a permission request dialog
+                    cameraPermissionState.launchPermissionRequest()
+                }) {
+                    Text(text = "Request permission")
+                }
+            }
+
             Button(onClick = {
-                if (imageUri == null) {
-                    diaryViewModel.uploadDiaryPost(postTitle, postBody)
+                if (imageUri == null && diaryNote.body!= null) {
+                    diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!)
                 } else {
                     diaryViewModel.uploadPostImage(
                         context.contentResolver,
                         imageUri!!, // this is the image file location locally on the phone
-                        postTitle,
-                        postBody
+                        diaryNote.title!!,
+                        diaryNote.body!!
                     )
                 }
             }) {
                 Text(text = "Upload")
             }
-        }
 
-        when (diaryViewModel.diaryUiState) {
-            is DiaryUiState.Init -> {}
-            is DiaryUiState.LoadingPostUpload -> CircularProgressIndicator()
-            is DiaryUiState.PostUploadSuccess -> Text(text = "Diary Post uploaded")
-            is DiaryUiState.ErrorDuringPostUpload -> {
-                Text(
-                    text = "Error: ${ (diaryViewModel.diaryUiState as
-                            DiaryUiState.ErrorDuringPostUpload).error}"
-                )
+            when (diaryViewModel.diaryUiState) {
+                is DiaryUiState.Init -> {}
+                is DiaryUiState.LoadingPostUpload -> CircularProgressIndicator()
+                is DiaryUiState.PostUploadSuccess -> Text(text = "Diary Post uploaded")
+                is DiaryUiState.ErrorDuringPostUpload -> {
+                    Text(
+                        text = "Error: ${ (diaryViewModel.diaryUiState as
+                                DiaryUiState.ErrorDuringPostUpload).error}"
+                    )
+                }
+                is DiaryUiState.LoadingImageUpload -> CircularProgressIndicator()
+                is DiaryUiState.ImageUploadSuccess -> {
+                    Text(text = "Image uploaded, starting post upload.")
+                }
+                is DiaryUiState.ErrorDuringImageUpload -> Text(
+                    text = "${(diaryViewModel.diaryUiState as
+                            DiaryUiState.ErrorDuringImageUpload).error}")
             }
-            is DiaryUiState.LoadingImageUpload -> CircularProgressIndicator()
-            is DiaryUiState.ImageUploadSuccess -> {
-                Text(text = "Image uploaded, starting post upload.")
-            }
-            is DiaryUiState.ErrorDuringImageUpload -> Text(
-                text = "${(diaryViewModel.diaryUiState as
-                        DiaryUiState.ErrorDuringImageUpload).error}")
         }
     }
+
 }
 
 

@@ -6,7 +6,9 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -34,6 +36,19 @@ class DiaryViewModel @Inject constructor(
 ) : ViewModel() {
     var foodUiState: FoodUiState by mutableStateOf(FoodUiState.Init)
     var diaryUiState: DiaryUiState by mutableStateOf(DiaryUiState.Init)
+    var diaryNotes = mutableStateListOf<DiaryNote>()
+
+    fun addDiaryNote(note: DiaryNote) {
+        diaryNotes.add(note)
+    }
+
+    fun removeDiaryNote(note: DiaryNote) {
+        diaryNotes.remove(note)
+    }
+
+    fun getAllDiaryNotes(): List<DiaryNote> {
+        return diaryNotes
+    }
 
     fun getFoodRecipes(query: String, apiKey: String, number: String) { // Change to get Dropdown or something
         foodUiState = FoodUiState.Loading
