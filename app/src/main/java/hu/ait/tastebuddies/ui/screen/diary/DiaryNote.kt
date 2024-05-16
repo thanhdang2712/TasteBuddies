@@ -8,10 +8,10 @@ import kotlin.random.Random
 @Parcelize
 data class DiaryNote(
     val id: Int = Random.nextInt(),
-    val date: String? = null,
+    val date: String? = "",
     var noteType: PostType? = null,
-    var title: String? = null,
-    var body: String? = null,
+    var title: String? = "",
+    var body: String? = "",
     var rating: Float? = 0f,
 ): Parcelable {
     constructor( date: String?, noteType: PostType?, title: String?, body: String?, rating: Float?) :
