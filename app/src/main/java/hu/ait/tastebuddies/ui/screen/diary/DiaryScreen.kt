@@ -448,7 +448,7 @@ fun MyDiaryScreen(
 fun MyDiaryEntryCard(
     diaryNote: DiaryNote
 ) {
-    val (day, month, year) = diaryNote.date.split(" ")
+    val (day, month, year) = diaryNote.date!!.split(" ")
     Column(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
         horizontalAlignment = Alignment.CenterHorizontally
