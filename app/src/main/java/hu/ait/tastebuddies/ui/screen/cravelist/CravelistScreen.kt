@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import hu.ait.tastebuddies.R
+import hu.ait.tastebuddies.data.food.CraveItem
 import hu.ait.tastebuddies.data.food.FoodItem
 import hu.ait.tastebuddies.ui.screen.diary.DiaryEntryScreen
 import hu.ait.tastebuddies.ui.screen.diary.DiaryViewModel
@@ -70,13 +71,13 @@ import hu.ait.tastebuddies.ui.screen.diary.FoodUiState
 @Composable
 fun CravelistScreen(
     cravelistViewModel: CravelistViewModel = viewModel(),
-    diaryViewModel: DiaryViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier,
+    diaryViewModel: DiaryViewModel = hiltViewModel()
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var foodQuery by rememberSaveable { mutableStateOf("") }
     var foodNames by rememberSaveable { mutableStateOf(emptyList<FoodItem>()) }
-    var showCravelistGridScreen by rememberSaveable{ mutableStateOf(false) }
+    cravelistViewModel.getCravelist()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,6 +99,15 @@ fun CravelistScreen(
         }
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
+            when(cravelistViewModel.cravelistUiState) {
+                is CravelistUiState.Init -> Text("Fetching your cravings >.<")
+                is CravelistUiState.Loading -> CircularProgressIndicator()
+                is CravelistUiState.Success -> CravelistGridScreen(cravelistViewModel)
+                is CravelistUiState.Error -> Text(
+                    text = "Error: " +
+                            (diaryViewModel.foodUiState as FoodUiState.Error).errorMsg
+                )
+            }
             if (showDialog) {
                 Dialog(onDismissRequest = { showDialog = false }) {
                     Card(
@@ -141,10 +151,12 @@ fun CravelistScreen(
                                             onFoodSelectedListener = {
                                                 foodQuery = it.name
                                                 showDialog = false
-                                                showCravelistGridScreen = true
-
                                                 cravelistViewModel.addFoodItem(
-                                                    it
+                                                    CraveItem(
+                                                        id = cravelistViewModel.getNextIndex(),
+                                                        name = it.name,
+                                                        image = it.image,
+                                                        hasEaten = false )
                                                 )
                                             })
                                     }
@@ -158,7 +170,6 @@ fun CravelistScreen(
                                     foodNames =
                                         diaryViewModel.getFoodNames((diaryViewModel.foodUiState as FoodUiState.Success).foodRecipes)
                                 }
-
                                 is FoodUiState.Error -> Text(
                                     text = "Error: " +
                                             "${(diaryViewModel.foodUiState as FoodUiState.Error).errorMsg}"
@@ -168,20 +179,16 @@ fun CravelistScreen(
                     }
                 }
             }
-            if (showCravelistGridScreen) {
-                CravelistGridScreen(cravelistViewModel, modifier)
-            }
         }
     }
 }
 @Composable
 fun CravelistGridScreen(
-    cravelistViewModel: CravelistViewModel,
-    modifier: Modifier = Modifier
+    cravelistViewModel: CravelistViewModel
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = modifier.testTag("plant_list")
+        modifier = Modifier
             .imePadding(),
         contentPadding = PaddingValues(
             horizontal = 12.dp,
@@ -189,9 +196,9 @@ fun CravelistGridScreen(
         )
     ) {
         items(
-            cravelistViewModel.getAllFood()
+            cravelistViewModel.cravelist
         ) { craveItem ->
-            CraveItemCard(craveItem = craveItem)
+            CraveItemCard(cravelistViewModel, craveItem = craveItem)
         }
     }
 
@@ -200,7 +207,8 @@ fun CravelistGridScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CraveItemCard(
-    craveItem: FoodItem
+    cravelistViewModel: CravelistViewModel,
+    craveItem: CraveItem
 ) {
     Card(
         onClick = { },
@@ -225,6 +233,8 @@ fun CraveItemCard(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
+                    craveItemBookmarkState = cravelistViewModel.cravelist[craveItem.id].hasEaten,
+                    onBookmarkItem = fun(state: Boolean): Unit { cravelistViewModel.updateItemBookmark(craveItem, state) },
                     backgroundColor = colorResource(id = R.color.black_alpha)
                 )
             }
@@ -242,19 +252,14 @@ fun CraveItemCard(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewCraveItemCard() {
-    val sampleFoodItem = FoodItem(2, "Banh Mi", "https://images.app.goo.gl/PjuMh4pYkk3ksSDo9")
-    CraveItemCard(craveItem = sampleFoodItem)
-}
-
 @Composable
 fun BookMarkButton(
     modifier: Modifier = Modifier,
+    craveItemBookmarkState: Boolean,
+    onBookmarkItem: (Boolean) -> Unit,
     backgroundColor: Color,
 ) {
-    var selected by rememberSaveable { mutableStateOf(false)}
+    var selected by rememberSaveable { mutableStateOf(craveItemBookmarkState)}
     val icon = if (selected) Icons.Filled.Star else Icons.Outlined.Star
     val iconTintColor = if (selected) Color(0xFFFFC700) else Color(0xFFCCCCCC)
     Surface(
@@ -264,6 +269,7 @@ fun BookMarkButton(
             .requiredSize(36.dp, 36.dp)
             .clickable {
                 selected = !selected
+                onBookmarkItem(selected)
             }
     ) {
         Icon(
@@ -274,10 +280,4 @@ fun BookMarkButton(
                 .padding(6.dp)
         )
     }
-}
-
-@Composable
-@Preview
-fun previewBookMarkButtonClicked() {
-    BookMarkButton(backgroundColor = Color.Black)
 }

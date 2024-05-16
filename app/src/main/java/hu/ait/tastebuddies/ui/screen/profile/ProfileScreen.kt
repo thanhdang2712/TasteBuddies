@@ -159,7 +159,7 @@ fun ProfileImage() {
 
     Column(
         modifier = Modifier
-            .padding(8.dp),
+            .padding(7.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -175,16 +175,16 @@ fun ProfileImage() {
                 modifier = Modifier
                     .wrapContentSize()
                     .clickable {},
-                contentScale = ContentScale.Crop)
+                contentScale = ContentScale.Crop
+            )
         }
-        Text(text = "Change profile picture", fontSize = 15.sp)
     }
 }
 
 @Composable
 fun BioDescription(bioText: String) {
     Column(modifier = Modifier
-        .padding(20.dp)
+        .padding(7.dp)
         .fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text("Bio", fontSize = 20.sp)
         OutlinedCard(
@@ -211,15 +211,14 @@ fun FavoriteFoods(
     onRemoveFoodItem: (Int) -> Unit,
     showFavFoodDialog: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(20.dp)) {
-        Text("Top 3 Dishes", fontSize = 20.sp)
-        Spacer(modifier = Modifier.height(10.dp))
+    Column(modifier = Modifier.padding(7.dp)) {
+        Text("Top 3 Dishes", fontSize = 20.sp, modifier = Modifier.padding(5.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             for (i in 0..2) {
                 if (profileViewModel.favFoodList[i] == null) {
