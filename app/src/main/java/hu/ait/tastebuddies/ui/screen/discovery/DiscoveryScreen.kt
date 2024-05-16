@@ -122,15 +122,15 @@ fun PostCard(
     onRemoveItem: () -> Unit = {},
     currentUserId: String = ""
 ) {
-    OutlinedCard(
+    Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 10.dp
+            defaultElevation = 40.dp
         ),
-        modifier = Modifier.padding(5.dp)
+        modifier = Modifier.padding(15.dp)
     ) {
         Column(
             modifier = Modifier
@@ -192,18 +192,6 @@ fun PostCard(
                     Text("${post.likes.size} likes", fontWeight = FontWeight.Bold)
                 }
                 Text(text = parseMonthDay(post.date), fontSize = 15.sp)
-            }
-
-            if (post.imgUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(post.imgUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Image",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
             }
         }
     }
