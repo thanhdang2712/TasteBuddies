@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import hu.ait.tastebuddies.data.DataManager
 import hu.ait.tastebuddies.data.Post
@@ -32,7 +33,7 @@ class DiscoveryViewModel: ViewModel() {
 
     fun postsList() = callbackFlow {
         val snapshotListener =
-            FirebaseFirestore.getInstance().collection("posts")
+            FirebaseFirestore.getInstance().collection("posts").orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener() { snapshot, e ->
                     val response = if (snapshot != null) {
                         val postList = snapshot.toObjects(Post::class.java)

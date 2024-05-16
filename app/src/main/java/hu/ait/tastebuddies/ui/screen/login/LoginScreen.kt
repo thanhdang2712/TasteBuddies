@@ -27,11 +27,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.DataManager
 import kotlinx.coroutines.launch
 
@@ -47,7 +51,14 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("123456") }
     val coroutineScope = rememberCoroutineScope()
 
-    Box() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .paint(
+                painterResource(id = R.drawable.apple_wallpaper),
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.4f)
+    ) {
         Text(
             text = "TasteBuddies",
             modifier = Modifier

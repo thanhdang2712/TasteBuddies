@@ -61,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -130,6 +131,14 @@ fun DiaryScreen(
         }
     ) { contentPadding ->
         // TODO: Display the post type icon too
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .paint(
+                    painterResource(id = R.drawable.apple_wallpaper),
+                    contentScale = ContentScale.FillBounds,
+                    alpha = 0.4f)
+        )
         Column(modifier = Modifier.padding(contentPadding)) {
             if (showDropdown) {
                 Box(
