@@ -1,5 +1,7 @@
 package hu.ait.tastebuddies.data
 
+import androidx.annotation.DrawableRes
+import hu.ait.tastebuddies.R
 import java.util.Date
 
 data class Post(
@@ -20,6 +22,8 @@ data class PostWithId(
     val post: Post
 )
 
-enum class PostType(val type: String) {
-    ATE("ate"), MADE("made"), CRAVE("craves");
+enum class PostType(val type: String, @DrawableRes val icon: Int) {
+    ATE("ate", R.drawable.ate),
+    MADE("made", R.drawable.made),
+    CRAVE("craves", R.drawable.crave);
 }
