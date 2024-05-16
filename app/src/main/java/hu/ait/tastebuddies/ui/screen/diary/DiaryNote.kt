@@ -8,7 +8,7 @@ import kotlin.random.Random
 @Parcelize
 data class DiaryNote(
     val id: Int = Random.nextInt(),
-    val date: String? = "",
+    var date: String? = "",
     var noteType: PostType? = null,
     var title: String? = "",
     var body: String? = "",
