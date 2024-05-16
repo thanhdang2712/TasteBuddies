@@ -1,5 +1,6 @@
 package hu.ait.tastebuddies.ui.screen.diary
 
+import android.Manifest
 import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.lazy.items
@@ -196,7 +197,7 @@ fun DiaryScreen(
                             )
                             OutlinedTextField(
                                 value = postTitle,
-                                label = { 
+                                label = {
                                     Text(text = when (postType) {
                                         PostType.ATE -> "Today I ate..."
                                         PostType.MADE -> "Today I made..."
@@ -271,13 +272,13 @@ fun DiaryScreen(
 fun DiaryEntryScreen(
     postTitle: String,
     diaryViewModel: DiaryViewModel,
-    diaryNote: DiaryNote
+    diaryNote: DiaryNote,
 ) {
     var noteBody by rememberSaveable { mutableStateOf("") }
     var noteRating by rememberSaveable { mutableStateOf(0.0f) }
 
     val cameraPermissionState = rememberPermissionState(
-        android.Manifest.permission.CAMERA
+        Manifest.permission.CAMERA
     )
     var hasImage by remember {
         mutableStateOf(false)
@@ -316,13 +317,18 @@ fun DiaryEntryScreen(
                         } else {
                             "Give permission for using photos with items"
                         }
-                        Text(text = permissionText)
-                        Button(onClick = {
-                            // this code pops up a permission request dialog
-                            cameraPermissionState.launchPermissionRequest()
-                        }) {
-                            Text(text = "Request permission")
+                        Column(
+                            modifier = Modifier.wrapContentSize()
+                        ) {
+                            Text(text = permissionText)
+                            Button(onClick = {
+                                // this code pops up a permission request dialog
+                                cameraPermissionState.launchPermissionRequest()
+                            }) {
+                                Text(text = "Request permission")
+                            }
                         }
+
                     }
 
                     Button(onClick = {
@@ -337,8 +343,10 @@ fun DiaryEntryScreen(
                             )
                         }
                     }) {
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(text = "Upload")
                     }
+
                 }
             }
         }
@@ -411,7 +419,6 @@ fun DiaryEntryScreen(
                 is DiaryUiState.PostUploadSuccess -> {
                     Text(text = "Diary Post uploaded")
                     diaryViewModel.addDiaryNote(diaryNote)
-                    MyDiaryScreen(diaryViewModel)
                 }
                 is DiaryUiState.ErrorDuringPostUpload -> {
                     Text(
@@ -429,65 +436,7 @@ fun DiaryEntryScreen(
             }
         }
     }
-
 }
-
-@Composable
-fun MyDiaryScreen(
-    diaryViewModel: DiaryViewModel
-) {
-    LazyColumn() {
-        items(diaryViewModel.getAllDiaryNotes()) {
-            MyDiaryEntryCard(it)
-        }
-    }
-
-}
-
-@Composable
-fun MyDiaryEntryCard(
-    diaryNote: DiaryNote
-) {
-    val (day, month, year) = diaryNote.date!!.split(" ")
-    Column(
-        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = day ?: "",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(text = month ?: "", style = MaterialTheme.typography.bodyLarge)
-        Text(text = year, style = MaterialTheme.typography.bodyLarge)
-        Divider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            if (diaryNote.noteType != null) {
-                Image(
-                    painter = painterResource(diaryNote.noteType!!.icon),
-                    contentDescription = "Post type icon",
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            if (!diaryNote.title.isNullOrEmpty()) {
-                Text(
-                    text = diaryNote.title ?: "",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            if (!diaryNote.body.isNullOrEmpty()) {
-                Text(text = diaryNote.body ?: "", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-    }
-}
-
-
 @Composable
 fun StarRatingBar(
     maxStars: Int = 5,
