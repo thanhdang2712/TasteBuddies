@@ -299,7 +299,8 @@ fun DiaryEntryScreen(
             Column(modifier = Modifier.fillMaxWidth()) {
                 Divider()
                 Spacer(modifier = Modifier.height(10.dp))
-                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Row(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround) {
                     if (cameraPermissionState.status.isGranted) {
                         //if we have the camera permission then show a "Take photo" button
                         Button(onClick = {
