@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import hu.ait.tastebuddies.R
 import hu.ait.tastebuddies.data.DataManager
+import hu.ait.tastebuddies.ui.theme.Green40
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -57,14 +59,16 @@ fun LoginScreen(
             .paint(
                 painterResource(id = R.drawable.apple_wallpaper),
                 contentScale = ContentScale.FillBounds,
-                alpha = 0.4f)
+                alpha = 0.25f)
     ) {
         Text(
             text = "TasteBuddies",
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 50.dp),
-            fontSize = 30.sp
+            fontSize = 40.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Green40
         )
         Column(
             modifier = Modifier
