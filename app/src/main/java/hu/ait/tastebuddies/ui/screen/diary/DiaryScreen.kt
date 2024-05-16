@@ -92,8 +92,7 @@ fun DiaryScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showDropdown by rememberSaveable { mutableStateOf(false) }
     var postType by rememberSaveable { mutableStateOf(PostType.ATE) }
-//    var foodNames by rememberSaveable { mutableStateOf(emptyList<String>()) }
-    var foodNames by rememberSaveable { mutableStateOf(listOf(FoodItem(1, "Pasta", ""), FoodItem(2, "Pizza", ""), FoodItem(3, "Banh mi", ""))) }
+    var foodNames by rememberSaveable { mutableStateOf(emptyList<FoodItem>()) }
     var showDiaryEntryScreen by rememberSaveable{ mutableStateOf(false) }
     val allPostTypes by rememberSaveable{ mutableStateOf(listOf(PostType.ATE, PostType.MADE, PostType.CRAVE)) }
     var selected by rememberSaveable { mutableStateOf(PostType.ATE) }
@@ -174,8 +173,6 @@ fun DiaryScreen(
                         }
                     }
                 }
-
-
             }
             if (showDialog) {
                 Dialog(onDismissRequest = { showDialog = false }) {
@@ -200,11 +197,11 @@ fun DiaryScreen(
                                 },
                                 onValueChange = {
                                     postTitle = it
-//                                    diaryViewModel.getFoodRecipes(
-//                                        postTitle,
-//                                        "9d3cc85171a74f679f647ab3dc919805",
-//                                        "10"
-//                                    )
+                                    diaryViewModel.getFoodRecipes(
+                                        postTitle,
+                                        "9d3cc85171a74f679f647ab3dc919805",
+                                        "10"
+                                    )
                                 }
                             )
                             // Show items in LazyColumn

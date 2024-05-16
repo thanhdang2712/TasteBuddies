@@ -6,6 +6,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20"
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
 }
 
 android {

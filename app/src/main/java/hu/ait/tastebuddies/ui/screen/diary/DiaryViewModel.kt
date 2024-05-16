@@ -85,7 +85,7 @@ class DiaryViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
-    public fun uploadPostImage(
+    fun uploadPostImage(
         contentResolver: ContentResolver, imageUri: Uri,
         title: String, postBody: String
     ) {
