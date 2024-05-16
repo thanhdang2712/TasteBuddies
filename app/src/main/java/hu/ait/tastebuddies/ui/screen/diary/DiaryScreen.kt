@@ -230,7 +230,7 @@ fun DiaryScreen(
                                             foodName = it.name,
                                             onFoodSelectedListener = {
                                                 postTitle = it.name
-                                                diaryNote = DiaryNote(currentDate, postType, postTitle, "", 0f)
+                                                diaryNote = DiaryNote(date = currentDate, noteType = postType, title = postTitle, body = "", rating = 0f, image = it.image)
                                                 diaryViewModel.diaryNotes.add(diaryNote)
                                                 showDialog = false
                                                 showDiaryEntryScreen = true
@@ -327,7 +327,7 @@ fun DiaryEntryScreen(
 
                     Button(onClick = {
                         if (imageUri == null && diaryNote.body!= null) {
-                            diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!)
+                            diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!, diaryNote.image)
                         } else {
                             diaryViewModel.uploadPostImage(
                                 context.contentResolver,

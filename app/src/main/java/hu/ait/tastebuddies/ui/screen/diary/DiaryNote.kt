@@ -13,6 +13,7 @@ data class DiaryNote(
     var title: String? = "",
     var body: String? = "",
     var rating: Float? = 0f,
+    var image: String = ""
 ): Parcelable {
     constructor( date: String?, noteType: PostType?, title: String?, body: String?, rating: Float?) :
     this(Random.nextInt(), date, noteType, title, body, rating)
