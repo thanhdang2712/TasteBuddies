@@ -15,7 +15,7 @@ TasteBuddies aims to fill a gap in existing food applications by focusing on the
 - **Profile Creation:** Users can add a profile picture, bio, dietary restrictions, and favorite cuisines.
 - **Top 3 Section:** Showcase all-time favorite dishes using a searchable database, allowing connections based on food preferences.
 
-<p float="left">
+<p align="center">
 <img src="screenshots/user_register.gif" width=250/>
 <img src="screenshots/profile.gif" width=250/>
 </p>
@@ -25,7 +25,7 @@ TasteBuddies aims to fill a gap in existing food applications by focusing on the
 - **Diary Categorization:** Entries categorized into eating out, home-cooked meals, or cravings, helping users track different dining experiences and moods.
 
 <p align="center">
-<img src="screenshots/diary.gif" width=250 style="margin-right: 10px;"/>
+<img src="screenshots/diary.gif" width=250 />
 <img src="screenshots/diary_camera.gif" width=250/>
 </p>
 
