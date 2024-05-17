@@ -16,8 +16,8 @@ TasteBuddies aims to fill a gap in existing food applications by focusing on the
 - **Top 3 Section:** Showcase all-time favorite dishes using a searchable database, allowing connections based on food preferences.
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/8813304/209520971-4a896a72-4963-4d21-b94e-775d79ab5a7b.jpg](https://github.com/QUANGLEA/TasteBuddies/blob/main/screenshots/user_register.gif" width="17%"/>
-<img src="https://user-images.githubusercontent.com/8813304/209520972-4d44094f-11f8-4fa5-ab95-232beaa18fec.jpg](https://github.com/QUANGLEA/TasteBuddies/blob/main/screenshots/profile.gif" width="17%"/>
+<img src="[https://user-images.githubusercontent.com/8813304/209520971-4a896a72-4963-4d21-b94e-775d79ab5a7b.jpg](https://github.com/QUANGLEA/TasteBuddies/blob/main/screenshots/user_register.gif)" width="17%"/>
+<img src="[https://user-images.githubusercontent.com/8813304/209520972-4d44094f-11f8-4fa5-ab95-232beaa18fec.jpg](https://github.com/QUANGLEA/TasteBuddies/blob/main/screenshots/profile.gif)" width="17%"/>
 </p>
 
 ### Eating Diary
