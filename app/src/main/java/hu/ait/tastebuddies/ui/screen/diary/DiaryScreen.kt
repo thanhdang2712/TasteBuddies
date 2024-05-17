@@ -341,22 +341,23 @@ fun DiaryEntryScreen(
 
                     }
 
-                    Button(onClick = {
-                        if (imageUri == null && diaryNote.body!= null) {
-                            diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!, diaryNote.image)
-                        } else {
-                            diaryViewModel.uploadPostImage(
-                                context.contentResolver,
-                                imageUri!!, // this is the image file location locally on the phone
-                                diaryNote.title!!,
-                                diaryNote.body!!
-                            )
+                    if (!noteBody.isNullOrEmpty() && noteRating != 0.0f) {
+                        Button(onClick = {
+                            if (imageUri == null && diaryNote.body!= null) {
+                                diaryViewModel.uploadDiaryPost(diaryNote.title!!, diaryNote.body!!, diaryNote.image)
+                            } else {
+                                diaryViewModel.uploadPostImage(
+                                    context.contentResolver,
+                                    imageUri!!, // this is the image file location locally on the phone
+                                    diaryNote.title!!,
+                                    diaryNote.body!!
+                                )
+                            }
+                        }) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "Upload")
                         }
-                    }) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "Upload")
                     }
-
                 }
             }
         }
@@ -407,7 +408,7 @@ fun DiaryEntryScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(value = noteBody,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 label = { Text(text = "Add a diary entry...") },
                 onValueChange = {
                     diaryNote.body = it
