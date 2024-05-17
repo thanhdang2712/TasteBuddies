@@ -4,16 +4,17 @@
 TasteBuddies aims to fill a gap in existing food applications by focusing on the dishes themselves rather than specific restaurants or locations. Our goal is to create a social platform for food enthusiasts to connect, share culinary experiences, maintain a food diary, and exchange stories with friends. TasteBuddies fosters a vibrant community where users can explore new flavors, discover favorite dishes, and engage with like-minded individuals.
 
 ## Tech Stack & Open-Source Libraries
-- **Jetpack Compose:** Modern toolkit for building native Android UIs.
-- **Kotlin + Coroutines + Flow:** For implementing the MVI (Model-View-Intent) architecture.
-- **Dagger Hilt:** Dependency injection to manage app components.
-- **Architecture Components:** Navigation and Datastore for robust app structure and state management.
-- **Firebase:** Backend-as-a-Service (BaaS) providing authentication and real-time data synchronization.
-- **HTTP REST API (Spoonacular API):** To fetch comprehensive food-related data.
+- 100% [Kotlin](https://kotlinlang.org/) based + [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) + [Flow](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/)
+- [Dagger Hilt](https://dagger.dev/hilt)
+- UI completely written in [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- Uses [Architecture Components](https://developer.android.com/topic/libraries/architecture/): including: Room, Lifecycle, Navigation, Datastore.
+- **HTTP REST API ([Spoonacular API](https://spoonacular.com/)):** To fetch comprehensive food-related data.
 
-## Implemented Features
+## Architecture
+- MVI clean architecture
+- Repository pattern
 
-### User Registration and Profile
+## User Registration and Profile
 - **Firebase Authentication:** Easy sign-up via email or social media.
 - **Profile Creation:** Users can add a profile picture, bio, dietary restrictions, and favorite cuisines.
 - **Top 3 Section:** Showcase all-time favorite dishes using a searchable database, allowing connections based on food preferences.
