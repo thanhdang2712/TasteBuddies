@@ -32,6 +32,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import hu.ait.tastebuddies.ui.navigation.InnerNavigation
+import hu.ait.tastebuddies.ui.navigation.MainNavigation
+import hu.ait.tastebuddies.ui.screen.cravelist.CravelistScreen
 import hu.ait.tastebuddies.ui.screen.diary.DiaryScreen
 import hu.ait.tastebuddies.ui.screen.discovery.DiscoveryScreen
 import hu.ait.tastebuddies.ui.screen.profile.ProfileScreen
@@ -106,6 +108,25 @@ fun MainScreen() {
                                 contentDescription = InnerNavigation.Discovery.title,
                             )
                         })
+                    NavigationBarItem(selected = selectedBottomTab == 3,
+                        onClick = {
+                            selectedBottomTab = 3
+                            innerNavController.navigate(InnerNavigation.CraveList.route) {
+                                innerNavController.popBackStack()
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = InnerNavigation.CraveList.title,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = InnerNavigation.CraveList.icon,
+                                contentDescription = InnerNavigation.CraveList.title,
+                            )
+                        })
                 }
             })
         }
@@ -125,6 +146,9 @@ fun MainScreen() {
                 }
                 composable(InnerNavigation.Discovery.route) {
                     DiscoveryScreen()
+                }
+                composable(InnerNavigation.CraveList.route) {
+                    CravelistScreen()
                 }
             }
         }

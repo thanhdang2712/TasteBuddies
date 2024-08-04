@@ -1,21 +1,39 @@
 package hu.ait.tastebuddies.ui.screen.discovery
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.firestore
+import hu.ait.tastebuddies.data.DataManager
 import hu.ait.tastebuddies.data.Post
 import hu.ait.tastebuddies.data.PostWithId
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 
 class DiscoveryViewModel: ViewModel() {
-    var messagesUiState: DiscoveryUIState by mutableStateOf(DiscoveryUIState.Init)
+    private val db = Firebase.firestore
+
+    fun updateLikes(postID: String, likes: List<String>) {
+        val mutableLikesList = likes.toMutableList()
+        if (mutableLikesList.contains(DataManager.email)) {
+            Log.d("TEST", "email in like list")
+            mutableLikesList.remove(DataManager.email)
+        } else {
+            mutableLikesList.add(DataManager.email)
+        }
+        val docRef = db.collection("posts").document(postID)
+        docRef
+            .update("likes", mutableLikesList.toList())
+            .addOnSuccessListener { Log.d("INCREMENT LIKES", "DocumentSnapshot successfully updated!") }
+            .addOnFailureListener { e -> Log.w("INCREMENT LIKES", "Error updating document", e) }
+
+    }
 
     fun postsList() = callbackFlow {
         val snapshotListener =
-            FirebaseFirestore.getInstance().collection("posts")
+            FirebaseFirestore.getInstance().collection("posts").orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener() { snapshot, e ->
                     val response = if (snapshot != null) {
                         val postList = snapshot.toObjects(Post::class.java)
@@ -52,4 +70,9 @@ sealed interface DiscoveryUIState {
     object Loading : DiscoveryUIState
     data class Success(val postList: List<PostWithId>) : DiscoveryUIState
     data class Error(val error: String?) : DiscoveryUIState
+}
+
+sealed interface LikesUiState {
+    object Init : LikesUiState
+    data class Success(val likesList: List<String>): LikesUiState
 }

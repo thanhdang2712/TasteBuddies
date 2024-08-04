@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.ButtonDefaults
@@ -36,6 +38,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -45,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,12 +72,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import hu.ait.tastebuddies.R
+import hu.ait.tastebuddies.data.food.FoodItem
 import hu.ait.tastebuddies.ui.screen.diary.DiaryViewModel
 import hu.ait.tastebuddies.ui.screen.diary.FoodUiState
+import hu.ait.tastebuddies.ui.screen.register.RegisterUiState
+import org.jetbrains.annotations.Async
 import sh.calvin.reorderable.ReorderableRow
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +91,7 @@ fun ProfileScreen(
     diaryViewModel: DiaryViewModel = hiltViewModel()
 ) {
     var showFavFoodDialog by rememberSaveable { mutableStateOf(false) }
-
+    profileViewModel.initializeProfile()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -91,60 +99,93 @@ fun ProfileScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor =
                     MaterialTheme.colorScheme.secondaryContainer
-                ),
-                actions = {
-//                    IconButton(
-//                        onClick = { }
-//                    ) {
-//                        Icon(Icons.Filled.Info, contentDescription = "Info")
-//                    }
-                }
+                )
             )
         },
     ) { contentPadding ->
         // Screen content
         Column(modifier = Modifier.padding(contentPadding)) {
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.Start,
-            ) {
-                ProfileImage()
-                Column(
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "Quang Le", fontSize = 20.sp, modifier = Modifier.paddingFromBaseline(top = 50.dp))
-                    Text(text = "20 years old", fontSize = 20.sp)
+            when (profileViewModel.profileUiState) {
+                is ProfileUiState.Init -> {}
+                is ProfileUiState.Loading -> CircularProgressIndicator()
+                is ProfileUiState.Success -> {
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        horizontalArrangement = Arrangement.Start,
+                    ) {
+                        ProfileImage()
+                        Column(
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(text = profileViewModel.currentUser!!.name, fontSize = 20.sp, modifier = Modifier.paddingFromBaseline(top = 50.dp))
+                            Text(text = "${profileViewModel.currentUser!!.age} years old", fontSize = 20.sp)
+                        }
+                    }
+                    FavoriteFoods(
+                        profileViewModel,
+                        onRemoveFoodItem = fun(id: Int): Unit { profileViewModel.removeFoodFromList(id)},
+                        showFavFoodDialog = {
+                            showFavFoodDialog = true
+                        })
+                    profileViewModel.currentUser?.bio?.let { BioDescription(it) }
+                    if (showFavFoodDialog) {
+                        FavFoodDialog(
+                            onDismissRequest = { showFavFoodDialog = false },
+                            profileViewModel = profileViewModel,
+                            diaryViewModel = diaryViewModel)
+                    }
                 }
+                is ProfileUiState.Error -> Text(
+                    text = "Error: ${(profileViewModel.profileUiState as ProfileUiState.Error).errorMsg}"
+                )
             }
-            FavoriteFoods(
-                profileViewModel,
-                onFoodCardClicked = {},
-                showFavFoodDialog = { showFavFoodDialog = true })
-            BioDescription()
-            if (showFavFoodDialog) {
-                FavFoodDialog(
-                    onDismissRequest = { showFavFoodDialog = false },
-                    profileViewModel = profileViewModel,
-                    diaryViewModel = diaryViewModel)
-            }
+
         }
     }
 }
 
-@Preview
 @Composable
-fun SimpleComposablePreview() {
-    // ProfileScreen()
+fun ProfileImage() {
+    val imageUri = rememberSaveable { mutableStateOf("") }
+    val painter = rememberAsyncImagePainter(
+        if (imageUri.value.isEmpty()) {
+            R.drawable.ic_user
+        } else {
+            imageUri.value
+        }
+    )
+
+    Column(
+        modifier = Modifier
+            .padding(7.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Card(
+            shape = CircleShape,
+            modifier = Modifier
+                .padding(8.dp)
+                .size(100.dp)
+        ) {
+            Image(
+                painter = painter,
+                contentDescription = "profile image",
+                modifier = Modifier
+                    .wrapContentSize()
+                    .clickable {},
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
 }
 
 @Composable
-fun BioDescription() {
-    var bioDescription by remember { mutableStateOf("I'm an AIT student, and I love to eat!!!") }
+fun BioDescription(bioText: String) {
     Column(modifier = Modifier
-        .padding(20.dp)
-        .fillMaxWidth(), verticalArrangement = Arrangement.SpaceBetween) {
+        .padding(7.dp)
+        .fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text("Bio", fontSize = 20.sp)
         OutlinedCard(
             colors = CardDefaults.cardColors(
@@ -158,7 +199,7 @@ fun BioDescription() {
             Text(
                 modifier = Modifier
                     .padding(10.dp),
-                text = bioDescription,
+                text = bioText,
                 fontSize = 15.sp)
         }
     }
@@ -167,23 +208,26 @@ fun BioDescription() {
 @Composable
 fun FavoriteFoods(
     profileViewModel: ProfileViewModel,
-    onFoodCardClicked: () -> Unit,
+    onRemoveFoodItem: (Int) -> Unit,
     showFavFoodDialog: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(20.dp)) {
-        Text("Top 3 Dishes", fontSize = 20.sp)
+    Column(modifier = Modifier.padding(7.dp)) {
+        Text("Top 3 Dishes", fontSize = 20.sp, modifier = Modifier.padding(5.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             for (i in 0..2) {
                 if (profileViewModel.favFoodList[i] == null) {
                     FavFoodPlaceholder(profileViewModel, id = i, showFavFoodDialog)
                 } else {
-                    FavFood(profileViewModel, id = i)
+                    FavFood(
+                        profileViewModel,
+                        onRemoveFoodItem = { onRemoveFoodItem(i) },
+                        id = i)
                 }
             }
         }
@@ -193,12 +237,17 @@ fun FavoriteFoods(
 @Composable
 fun FavFood(
     profileViewModel: ProfileViewModel,
+    onRemoveFoodItem: () -> Unit,
     id: Int
 ) {
+    var favFoodCardState by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
-            .size(width = 100.dp, height = 150.dp),
+            .size(width = 110.dp, height = 200.dp),
         border = BorderStroke(1.dp, Color.Black),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
         shape = RoundedCornerShape(20),
     ) {
         Column(
@@ -214,16 +263,19 @@ fun FavFood(
                     .align(Alignment.End)
                     .padding(5.dp)
                     .width(40.dp)
-                    .clickable(onClick = {profileViewModel.removeFoodFromList(id)}))
-            Image(
-                painter = painterResource(id = R.drawable.food),
+                    .clickable(onClick = {
+                        onRemoveFoodItem()
+                        favFoodCardState = !favFoodCardState
+                    }))
+            AsyncImage(
+                model = profileViewModel.favFoodList[id]!!.image,
                 contentDescription = "fav food",
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .weight(0.4f)
                     .padding(10.dp))
             Text(
-                text = profileViewModel.favFoodList[id]!!,
+                text = profileViewModel.favFoodList[id]!!.name,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .weight(0.4f)
@@ -235,66 +287,38 @@ fun FavFood(
 
 @Composable
 fun FavFoodPlaceholder(profileViewModel: ProfileViewModel, id: Int, showDialogBox: () -> Unit) {
-    OutlinedButton(
-        onClick = {
-            profileViewModel.foodCardNum = id
-            showDialogBox()
-        },
+    Card(
         modifier = Modifier
-            .size(width = 100.dp, height = 150.dp),
+            .size(width = 110.dp, height = 200.dp)
+            .clickable(
+                onClick = {
+                    profileViewModel.foodCardNum = id
+                    showDialogBox()
+                }
+            ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
         border = BorderStroke(1.dp, Color.Black),
         shape = RoundedCornerShape(20),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.LightGray
-        )
     ) {
         Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color.Gray, shape = CircleShape),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add",
-                tint = Color.White
-            )
-        }
-    }
-}
-
-
-@Composable
-fun ProfileImage() {
-    val imageUri = rememberSaveable { mutableStateOf("") }
-    val painter = rememberAsyncImagePainter(
-        if (imageUri.value.isEmpty()) {
-            R.drawable.ic_user
-        } else {
-            imageUri.value
-        }
-    )
-
-    Column(
-        modifier = Modifier
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Card(
-            shape = CircleShape,
-            modifier = Modifier
-                .padding(8.dp)
-                .size(100.dp)
-        ) {
-            Image(
-                painter = painter,
-                contentDescription = "profile image",
+            Box(
                 modifier = Modifier
-                    .wrapContentSize()
-                    .clickable {},
-                contentScale = ContentScale.Crop)
+                    .size(50.dp)
+                    .background(Color.Gray, shape = CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    tint = Color.White,
+                )
+            }
         }
-        Text(text = "Change profile picture", fontSize = 15.sp)
     }
 }
 
@@ -305,7 +329,8 @@ fun FavFoodDialog(
     diaryViewModel: DiaryViewModel = hiltViewModel()
 ) {
     var favFood by rememberSaveable { mutableStateOf("") }
-    var foodNames by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var foodNames by rememberSaveable { mutableStateOf(emptyList<FoodItem>()) }
+
 
     when (diaryViewModel.foodUiState) {
         is FoodUiState.Init -> {}
@@ -316,7 +341,7 @@ fun FavFoodDialog(
         }
         is FoodUiState.Error -> Text(
             text = "Error: " +
-                    "${(diaryViewModel.foodUiState as FoodUiState.Error).errorMsg}"
+                    (diaryViewModel.foodUiState as FoodUiState.Error).errorMsg
         )
     }
 
@@ -362,7 +387,7 @@ fun FavFoodDialog(
                         favFood = it
                         diaryViewModel.getFoodRecipes(
                             favFood,
-                            "9d3cc85171a74f679f647ab3dc919805",
+                            "f8aaf2cb54144b4f85fd846c61a23cd9",
                             "10"
                         )
                     }
@@ -378,10 +403,22 @@ fun FavFoodDialog(
                         items(foodNames) {
                             FoodCard(
                                 profileViewModel,
-                                foodName = it,
+                                foodItem = it,
                                 onDismissRequest)
                         }
                     }
+                }
+                when (diaryViewModel.foodUiState) {
+                    is FoodUiState.Init -> {}
+                    is FoodUiState.Loading -> CircularProgressIndicator()
+                    is FoodUiState.Success -> {
+                        foodNames =
+                            diaryViewModel.getFoodNames((diaryViewModel.foodUiState as FoodUiState.Success).foodRecipes)
+                    }
+                    is FoodUiState.Error -> Text(
+                        text = "Error: " +
+                                "${(diaryViewModel.foodUiState as FoodUiState.Error).errorMsg}"
+                    )
                 }
             }
         }
@@ -389,7 +426,7 @@ fun FavFoodDialog(
 }
 
 @Composable
-fun FoodCard(profileViewModel: ProfileViewModel, foodName: String, onDismissRequest: () -> Unit) {
+fun FoodCard(profileViewModel: ProfileViewModel, foodItem: FoodItem, onDismissRequest: () -> Unit) {
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
@@ -398,12 +435,12 @@ fun FoodCard(profileViewModel: ProfileViewModel, foodName: String, onDismissRequ
             .fillMaxWidth()
             .height(50.dp)
             .clickable(onClick = {
-                profileViewModel.addFoodToList(foodName)
+                profileViewModel.addFoodToList(foodItem)
                 onDismissRequest()
             })
     ) {
         Text(
-            text = foodName,
+            text = foodItem.name,
             modifier = Modifier
                 .padding(10.dp),
             textAlign = TextAlign.Center,

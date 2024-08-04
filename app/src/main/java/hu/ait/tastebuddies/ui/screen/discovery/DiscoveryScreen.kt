@@ -1,7 +1,5 @@
 package hu.ait.tastebuddies.ui.screen.discovery
 
-import android.widget.RatingBar
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,18 +33,27 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import hu.ait.tastebuddies.R
+import hu.ait.tastebuddies.data.DataManager
 import hu.ait.tastebuddies.data.Post
 import hu.ait.tastebuddies.ui.screen.diary.StarRatingBar
+import hu.ait.tastebuddies.utils.parseMonthDay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,27 +83,33 @@ fun DiscoveryScreen(
     ) { contentPadding ->
         // Screen content
         Column(modifier = Modifier.padding(contentPadding)) {
-            if (postListState.value == DiscoveryUIState.Init) {
-                Text(text = "Initializing..")
-            }
-            else if (postListState.value == DiscoveryUIState.Loading) {
-                CircularProgressIndicator()
-            } else if (postListState.value is DiscoveryUIState.Success) {
-                // show messages in a list...
-                LazyColumn() {
-                    items((postListState.value as DiscoveryUIState.Success).postList){
-                        //Text(text = it.post.title)
-                        PostCard(post = it.post,
-                            onRemoveItem = {
-                                discoveryViewModel.deletePost(it.postId)
-                            },
-                            currentUserId = FirebaseAuth.getInstance().uid!!
-                        )
+            when (postListState.value) {
+                DiscoveryUIState.Init -> {
+                    Text(text = "Initializing..")
+                }
+                DiscoveryUIState.Loading -> {
+                    CircularProgressIndicator()
+                }
+                is DiscoveryUIState.Success -> {
+                    // show messages in a list...
+                    LazyColumn() {
+                        items((postListState.value as DiscoveryUIState.Success).postList){
+                            PostCard(
+                                post = it.post,
+                                onUpdateLike = fun(likes: List<String>): Unit { discoveryViewModel.updateLikes(it.postId, likes)},
+                                onRemoveItem = {
+                                    discoveryViewModel.deletePost(it.postId)
+                                },
+                                currentUserId = FirebaseAuth.getInstance().uid!!
+                            )
+                        }
                     }
+
                 }
 
-            } else if (postListState.value is DiscoveryUIState.Error) {
-                // show error...
+                is DiscoveryUIState.Error -> {
+                    // show error...
+                }
             }
         }
     }
@@ -105,18 +118,19 @@ fun DiscoveryScreen(
 @Composable
 fun PostCard(
     post: Post = Post(),
+    onUpdateLike: (List<String>) -> Unit,
     onRemoveItem: () -> Unit = {},
     currentUserId: String = ""
 ) {
-    OutlinedCard(
+    Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 10.dp
+            defaultElevation = 40.dp
         ),
-        modifier = Modifier.padding(5.dp)
+        modifier = Modifier.padding(15.dp)
     ) {
         Column(
             modifier = Modifier
@@ -134,59 +148,51 @@ fun PostCard(
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
-                        text = "Quang ate",
+                        buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("${post.authorName} ")
+                            }
+                            append(post.postType.type)
+                        },
                         fontSize = 15.sp
                     )
                     Text(
                         text = post.title,
-                        fontSize = 20.sp,
+                        fontSize = 27.sp,
                         fontWeight = FontWeight.Bold
                     )
                     StarRatingBar(maxStars = 5, rating = 4f, onRatingChanged = {}, size = 7)
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.food),
-                            contentDescription = "food",
+                        AsyncImage(
+                            model = post.imgUrl,
+                            contentDescription = "food image",
                             modifier = Modifier.size(150.dp))
-                        Text("I just cooked this amazing dish today! You guys should try this some time!", fontSize = 15.sp)
+                        Text(post.body, fontSize = 15.sp)
                     }
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.black_heart),
+                            painter = painterResource(if (DataManager.email in post.likes) R.drawable.red_heart else R.drawable.black_heart),
                             contentDescription = "like",
-                            modifier = Modifier.size(20.dp))
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable(onClick = {
+                                    onUpdateLike(post.likes)
+                                })
+                        )
                         Icon(
                             painter = painterResource(R.drawable.comment),
                             contentDescription = "comment",
                             modifier = Modifier.size(20.dp))
                     }
-                    Text("100,000 likes", fontWeight = FontWeight.Bold)
+                    Text("${post.likes.size} likes", fontWeight = FontWeight.Bold)
                 }
-                Text(text = "May 6th", fontSize = 15.sp)
-            }
-
-            if (post.imgUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(post.imgUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Image",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(80.dp)
-                )
+                Text(text = parseMonthDay(post.date), fontSize = 15.sp)
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun Test() {
-    PostCard()
 }
